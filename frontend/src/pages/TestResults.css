@@ -1,0 +1,50 @@
+.container {
+    max-width: 700px;
+    width: 100%;
+    margin: 100px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .result-container {
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .incorrect-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .incorrect-card {
+    background: rgb(255, 162, 162);
+    padding: 1rem;
+    border: 1px solid rgb(255, 97, 97);
+    border-radius: 10px;
+    box-shadow: 0px 0px 4px rgba(0,0,0,0.4);
+  }
+
+  button {
+    width: 100%;
+    background: none;
+    padding: 1rem;
+    box-shadow: 0px 0px 4px rgba(0,0,0,0.4);
+    border-radius: 10px;
+    border: none;
+    transition-duration: 200ms;
+    cursor: pointer;
+  }
+
+  button:hover {
+        background-color: rgb(240, 239, 239);
+  }
