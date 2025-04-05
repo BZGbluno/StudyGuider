@@ -1,0 +1,15 @@
+.textbook {
+    border: 1px solid #ddd;
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 100%;
+
+    transition-duration: 200ms;
+    cursor: pointer;
+}
+
+.textbook:hover {
+    background-color: antiquewhite;
+}
