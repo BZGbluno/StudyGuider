@@ -3,7 +3,7 @@ import json
 
 
 def testGenerateAPI():
-    url = 'http://127.0.0.1:8000/api/generate'
+    url = 'http://0.0.0.0:8000/api/generate'
 
     data = {
 
@@ -19,7 +19,7 @@ def testGenerateAPI():
     print(chunk_data['response'])
 
 def testGetAllTextBooks():
-    url = 'http://127.0.0.1:8000/api/getTextbooks'
+    url = 'http://0.0.0.0:8000/api/getTextbooks'
 
 
     response = requests.get(url=url)
@@ -31,7 +31,7 @@ def testGetAllTextBooks():
 
 
 def testGetAllChapters():
-    url = 'http://127.0.0.1:8000/api/getChapters'
+    url = 'http://0.0.0.0:8000/api/getChapters'
 
 
     data = {

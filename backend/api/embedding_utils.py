@@ -3,8 +3,10 @@ import numpy as np
 from transformers import AutoTokenizer, AutoModel
 import torch
 import requests
+import os
 
 
+# OLLAMA_HOST=127.0.0.1:11435 ollama serve
 
 # Load tokenizer and model
 model_id = "sentence-transformers/all-MiniLM-L6-v2"
@@ -25,7 +27,7 @@ def generate_embeddings(texts):
 
 def getModelResponse(prompt):
     # Define the URL for the local Ollama server (assuming it's running locally)
-    url = "http://localhost:11434/api/generate"
+    url = "http://host.docker.internal:11435/api/generate"
 
 
     # Create a payload with the model and the input query
@@ -50,11 +52,17 @@ def generate_Helper(prompt, chapter, textbook):
 
     embedding = str(np.array(embedding).astype("float32")[0].tolist())
 
+    # conn = psycopg2.connect(
+    #     host="localhost",
+    #     database="mydb",
+    #     user="bruno",
+    #     password="your_password"
+    # )
     conn = psycopg2.connect(
-        host="localhost",
-        database="mydb",
-        user="bruno",
-        password="your_password"
+    host=os.getenv("DATABASE_HOST"),
+    database=os.getenv("DATABASE_NAME"),
+    user=os.getenv("DATABASE_USER"),
+    password=os.getenv("DATABASE_PASSWORD")
     )
     cur = conn.cursor()
 
