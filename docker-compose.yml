@@ -10,6 +10,7 @@ services:
       - backend
   
   backend:
+
     build: .
     container_name: studyguider_backend
     ports:

@@ -1,9 +1,10 @@
-import psycopg2
 import numpy as np
 from transformers import AutoTokenizer, AutoModel
 import torch
-import requests
 import os
+import httpx
+import asyncpg
+import asyncio
 
 
 # OLLAMA_HOST=127.0.0.1:11435 ollama serve
@@ -17,91 +18,69 @@ model = AutoModel.from_pretrained(model_id)
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 model = model.to(device)
 
-def generate_embeddings(texts):
+
+async def generate_embeddings(texts):
+    return await asyncio.to_thread(_generate_embeddings_blocking, texts)
+
+def _generate_embeddings_blocking(texts):
     inputs = tokenizer(texts, padding=True, truncation=True, return_tensors='pt').to(device)
     with torch.no_grad():
         outputs = model(**inputs)
     embeddings = outputs.last_hidden_state.mean(dim=1)
     return embeddings.cpu().numpy().tolist()
 
-
-def getModelResponse(prompt):
-    # Define the URL for the local Ollama server (assuming it's running locally)
+async def getModelResponse(prompt: str) -> str:
     url = "http://host.docker.internal:11435/api/generate"
-
-
-    # Create a payload with the model and the input query
     data = {
         "model": "llama3.1",
         "prompt": f"p{prompt}",
         "stream": False
     }
-
-    # Send the POST request with the JSON data, and use stream=True to handle streamed respons
-    response = requests.post(url, json=data, stream=False)
-
-    result = response.json()
-    full_response = result.get("response", "")
-
-    return full_response
+    async with httpx.AsyncClient() as client:
+        response = await client.post(url, json=data)
+        result = response.json()
+        return result.get("response", "")
 
 
-
-def generate_Helper(prompt, chapter, textbook):
-    embedding = generate_embeddings(prompt)
-
+async def generate_Helper(prompt, chapter, textbook):
+    embedding = await generate_embeddings(prompt)
     embedding = str(np.array(embedding).astype("float32")[0].tolist())
 
-    # conn = psycopg2.connect(
-    #     host="localhost",
-    #     database="mydb",
-    #     user="bruno",
-    #     password="your_password"
-    # )
-    conn = psycopg2.connect(
+    conn = await asyncpg.connect(
     host=os.getenv("DATABASE_HOST"),
     database=os.getenv("DATABASE_NAME"),
     user=os.getenv("DATABASE_USER"),
     password=os.getenv("DATABASE_PASSWORD")
     )
-    cur = conn.cursor()
+
+    res = await conn.fetchrow("""
+        SELECT c.textbook_id, c.chapter_number
+        FROM chapters c
+        JOIN textbooks t ON c.textbook_id = t.id
+        WHERE t.title = $1 AND c.chapter_title = $2;
+    """, textbook, chapter)
+
+    if not res:
+        return "Could not find matching chapter."
+
+    textbook_id = res["textbook_id"]
+    chapter_number = res["chapter_number"]
+
+    rows = await conn.fetch("""
+        SELECT chunk_text, embedding <-> $1 AS distance
+        FROM chapter_embeddings
+        WHERE textbook_id = $2 AND chapter_number = $3
+        ORDER BY distance ASC
+        LIMIT 2;
+    """, embedding, textbook_id, chapter_number)
+
+    await conn.close()
 
 
-    findTextBookandChapterQuery = """
-    SELECT 
-        c.textbook_id,
-        c.chapter_number
-    FROM chapters c
-    JOIN textbooks t ON c.textbook_id = t.id
-    WHERE t.name = %s AND c.chapter_title = %s;
-    """
-
-    cur.execute(findTextBookandChapterQuery, (textbook, chapter))
-    res = cur.fetchone()
-
-    textbook_id = res[0]
-    chapter_number = res[1]
-
-
-    query = """
-    SELECT 
-        chunk_text,
-        embedding <-> %s AS distance
-    FROM chapter_embeddings
-    WHERE textbook_id = %s AND chapter_number = %s
-    ORDER BY distance ASC
-    LIMIT 2;
-    """
-    cur.execute(query, (embedding, textbook_id, chapter_number))
-    results = cur.fetchall()
-    cur.close()
-    conn.close()
-
-
-    context = "\n".join(row[0] for row in results)
+    context = "\n".join(row[0] for row in rows)
     prompt = f"Context:\n{context}\n\nQuestion: {prompt}\nAnswer:"
 
-    ans = getModelResponse(prompt)
+    ans = await getModelResponse(prompt)
 
     return ans
 

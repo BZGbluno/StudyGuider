@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-import psycopg2
 import os
+import asyncpg
 
 router = APIRouter()
 
@@ -10,45 +10,35 @@ class ChapterRequest(BaseModel):
 
 
 @router.get("/api/getChapters")
-def getChapters_endpoint(request:ChapterRequest):
+async def getChapters_endpoint(textbook: str):
 
-    textbookName = request.textbook
+    try:
+        conn = await asyncpg.connect(
+        host=os.getenv("DATABASE_HOST"),
+        database=os.getenv("DATABASE_NAME"),
+        user=os.getenv("DATABASE_USER"),
+        password=os.getenv("DATABASE_PASSWORD")
+        )
 
-    # conn = psycopg2.connect(
-    #     host="localhost",
-    #     database="mydb",
-    #     user="bruno",
-    #     password="your_password"
-    # )
-    conn = psycopg2.connect(
-    host=os.getenv("DATABASE_HOST"),
-    database=os.getenv("DATABASE_NAME"),
-    user=os.getenv("DATABASE_USER"),
-    password=os.getenv("DATABASE_PASSWORD")
-    )
-    cur = conn.cursor()
 
-    findTextBookIDQuery = """
-    SELECT
-        id
-    FROM textbooks
-    WHERE name = %s;
-    """
+        textbook_id = await conn.fetchval(
+        "SELECT id FROM textbooks WHERE title = $1;",
+        textbook)
 
-    cur.execute(findTextBookIDQuery, (textbookName,))
-    res = cur.fetchone()
 
-    textBookId = res[0]
+        if textbook_id is None:
+            raise HTTPException(status_code=404, detail="Textbook not found")
 
-    findAllChapters = """
-    SELECT
-        chapter_title
-    FROM chapters
-    WHERE textbook_id = %s;
-    """
-    cur.execute(findAllChapters, (textBookId,))
-    allTextBooksChapters = cur.fetchall()
 
-    chapters = [row[0] for row in allTextBooksChapters]
+        rows = await conn.fetch(
+            "SELECT chapter_title FROM chapters WHERE textbook_id = $1;",
+            textbook_id
+        )
 
-    return {"response": chapters}
+        await conn.close()
+
+        chapters = [row["chapter_title"] for row in rows]
+        return {"response": chapters}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

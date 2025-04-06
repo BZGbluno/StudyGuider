@@ -1,6 +1,8 @@
 #!/bin/bash
 
 echo "⏳ Initializing database..."
+
+python createTables.py
 python moveToDb.py
 
 echo "🚀 Starting FastAPI server..."

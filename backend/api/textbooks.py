@@ -1,42 +1,30 @@
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
-import psycopg2
+import asyncpg
 import os
 
 router = APIRouter()
 
+
 @router.get("/api/getTextbooks")
-def getTextbooks_endpoint():
+async def getTextbooks_endpoint():
+    try:
+        conn = await asyncpg.connect(
+            host=os.getenv("DATABASE_HOST"),
+            database=os.getenv("DATABASE_NAME"),
+            user=os.getenv("DATABASE_USER"),
+            password=os.getenv("DATABASE_PASSWORD")
+        )
 
-    # conn = psycopg2.connect(
-    #     host="localhost",
-    #     database="mydb",
-    #     user="bruno",
-    #     password="your_password"
-    # )
+        rows = await conn.fetch("SELECT title FROM textbooks;")
+        await conn.close()
 
-    conn = psycopg2.connect(
-    host=os.getenv("DATABASE_HOST"),
-    database=os.getenv("DATABASE_NAME"),
-    user=os.getenv("DATABASE_USER"),
-    password=os.getenv("DATABASE_PASSWORD")
-    )
-    cur = conn.cursor()
+        textbooks = [row["title"] for row in rows]
 
-    getAllTextBooksQuery = """
-    SELECT
-        name
-    FROM textbooks;
-    """
+        return {"response": textbooks}
 
-    cur.execute(getAllTextBooksQuery)
-    res = cur.fetchall()
-
-    print(res)
-
-    textbooks = [row[0] for row in res]  # Extract names from tuples
-
-    return {"response": textbooks}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
     
 
