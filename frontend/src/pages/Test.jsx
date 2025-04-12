@@ -4,12 +4,43 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom';
 import Flashcard from '../components/Flashcard';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function Test() {
     const navigate = useNavigate();
-
-    // 1. Extract GET Request of Questions
+    //    const location = useLocation();
+    //     const { selectedTitle, selectedChapter } = location.state || {};
+    
+        const numQuestions = 10;
+    
+        // 1. POST Request: Summary Contents
+        // useEffect(() => {
+        //     const sendPostRequest = async () => {
+        //       try {
+        //         const response = await fetch('https://your-api.com/summary', {
+        //           method: 'POST',
+        //           headers: {
+        //             'Content-Type': 'application/json',
+        //           },
+        //           body: JSON.stringify({
+        //             title: selectedTitle,
+        //             chapter: selectedChapter,
+        //             numQuestions: numQuestions,
+        //           }),
+        //         });
+          
+        //         const data = await response.json();
+        //         console.log("Response from server:", data);
+    
+        //       } catch (error) {
+        //         console.error("POST request failed:", error);
+        //       }
+        //     };
+          
+        //     if (selectedTitle && selectedChapter) {
+        //       sendPostRequest();
+        //     }
+        // }, [selectedTitle, selectedChapter]);
 
     // 2. Render all the questions into cards: Array of Objects
     const [cards, setCards] = useState([
@@ -20,12 +51,20 @@ function Test() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
+    const [flipped, setFlipped] = useState(false);
+    const [disableAnimation, setDisableAnimation] = useState(false);
 
     // 3. Handle user checking card, move onto the next
     const handleCheck = () => {
         const updated = [...cards]; // unpack all the current cards
         updated[currentQuestionIndex].isCorrect = true;
         setCards(updated)
+        setFlipped(false)
+        setDisableAnimation(true)
+
+        setTimeout(() => {
+            setDisableAnimation(false); // re-enable after render
+          }, 0); // minimal timeout to allow render to complete
 
         if (currentQuestionIndex < cards.length - 1) {
             setCorrect(correct + 1)
@@ -41,6 +80,12 @@ function Test() {
         const updated = [...cards]; // unpack all the current cards
         updated[currentQuestionIndex].isCorrect = false;
         setCards(updated)
+        setFlipped(false)
+        setDisableAnimation(true)
+
+        setTimeout(() => {
+            setDisableAnimation(false); // re-enable after render
+          }, 0); // minimal timeout to allow render to complete
 
         if (currentQuestionIndex < cards.length - 1) {
             setIncorrect(incorrect + 1)
@@ -53,10 +98,11 @@ function Test() {
     }
 
     return (
-        <div className="container">
+        <div className="t-container">
             <div className="test-container">
                 <div className="back-title">
                     <button
+                    id="tst-btn"
                     onClick={() => navigate(-1)}>
                         <FontAwesomeIcon icon={faArrowLeft} size="2x" />
                     </button>
@@ -69,6 +115,9 @@ function Test() {
                 <Flashcard
                     Question={cards[currentQuestionIndex].question}
                     Answer={cards[currentQuestionIndex].answer}
+                    flipped={flipped}
+                    setFlipped={setFlipped}
+                    disableAnimation={disableAnimation}
                 />
                 <div className="button-container">
                     <button

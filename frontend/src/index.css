@@ -8,6 +8,30 @@
     font-family: 'Roboto', sans-serif;
 }
 
+:root {
+  /* Homepage */
+  --primary-color: #dcf0fd;  
+  --secondary-color:  #d0ecff;  
+  --background-color: #138cdc67; 
+
+  /* Parameters */
+  --primary2-color: #e2ffee;  
+  --secondary2-color:  #d0ffe3;  
+  --background2-color: #3bd2775e; 
+
+  /* Summary */
+  --primary3-color: #ffe2e2;  
+  --secondary3-color:  #f2c3c3;  
+  --background3-color: #d82c2c71; 
+
+  /* Flashcards */
+  --primary4-color: #ffc0695e; 
+  --secondary4-color:  #b4f0cc; 
+  --background4-color: #ffc0695e; 
+
+  --text-color: #212529;
+}
+
 html, body, #root {
     height: 100%;
 
@@ -16,6 +40,6 @@ html, body, #root {
 #root {
   display: flex;
   height: 100%;
-  justify-content: center; /* horizontal */
-  align-items: center;     /* vertical */
+  justify-content: center;
+  align-items: center;
 }

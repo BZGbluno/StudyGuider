@@ -57,7 +57,7 @@ async def getModelResponse(prompt: str) -> str:
 
     url = "http://host.docker.internal:11435/api/generate"
     data = {
-        "model": "llama3.1",
+        "model": "llama3.2",
         "prompt": f"p{prompt}",
         "stream": False
     }

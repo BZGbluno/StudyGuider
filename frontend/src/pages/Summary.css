@@ -1,15 +1,18 @@
-.container {
-    max-width: 700px;
+.s-container {
+    max-width: 1000px;
     width: 100%;
     margin: 100px auto;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 1rem;
+    padding: 4rem 0rem;
+    transition: justify-content 0.6s ease;
+    justify-content: center;
   }
 
   .summary-container {
     padding: 30px;
-    border: 1px solid #ddd;
+    border: 5px solid #0000001f;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   
@@ -17,16 +20,25 @@
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1rem;
+
+    height: 550px; /* adjust as needed */
+    overflow: hidden;
+    position: relative;
+    flex: 2;
+
+    background-color: var(--background3-color);
   }
 
   .back-title {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     width: 100%;
     position:relative;
     display: flex;
     align-items: center;
     justify-content: center;
-
   }
 
   .back-title button {
@@ -40,10 +52,25 @@
     background: none;
     cursor:pointer;
     transition-duration: 200ms;
+    
   }
 
-  .back-title button:hover {
-    background-color: rgb(203, 203, 203);
+  #sum-btn {
+    background-color: var(--primary3-color);
+  }
+
+  #sum-btn:hover {
+    background-color: var(--background3-color);
+  }
+
+  .summary-scroll {
+    overflow-y: auto;
+    flex: 1;
+    padding: 0px 1rem;
+    background-color: var(--primary3-color);
+    border-radius: 10px;
+    border: 3px solid #85000046;
+    width: 100%;
   }
 
   /* Summary.css */
@@ -55,7 +82,6 @@
     position: relative;
   }
 
-  
   .blinking-cursor {
     display: inline-block;
     animation: blink 1s step-start infinite;
