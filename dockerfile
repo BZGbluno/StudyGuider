@@ -19,8 +19,6 @@ COPY backend/ .
 # Expose FastAPI default port
 EXPOSE 8000
 
-
-
 # Make the entrypoint script executable
 RUN chmod +x entrypoint.sh
 

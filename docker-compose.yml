@@ -18,13 +18,16 @@ services:
     volumes:
       - ./backend:/app
       - ./backend/bookAdders/csv:/csv
+      - ./backend/images:/images
     depends_on:
       - db
-    environment:
-      - DATABASE_HOST=db
-      - DATABASE_NAME=mydb
-      - DATABASE_USER=bruno
-      - DATABASE_PASSWORD=your_password
+    # environment:
+    #   - DATABASE_HOST=db
+    #   - DATABASE_NAME=mydb
+    #   - DATABASE_USER=bruno
+    #   - DATABASE_PASSWORD=your_password
+    env_file:
+      - .env
 
   db:
     image: ankane/pgvector

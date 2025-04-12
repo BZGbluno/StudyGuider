@@ -6,39 +6,51 @@ import re
 
 
 
-def pdfToString(pathToPdf:str):
+def pdf_To_String(pathToPdf:str):
+    '''
+    This function leverage langchains pdf loader to turn the
+    pdf text into string format
+    '''
 
+    # path to pdf
     loader = PyPDFLoader(pathToPdf)
+
+    # turning to text
     documents = loader.load()
+
+    # joining seperate pages into 1 document split by a new line character
     combined_text = "\n".join([doc.page_content for doc in documents])
 
     return combined_text
 
     
 
-def regex_text_splitter(text, pattern=r'\nChapter\s+\d+\s*[:.-]?\s*\n', keep_separator=False):
-    """
-    Splits the text using the given regex pattern.
-    If keep_separator is True, the split separators are included in the chunks.
-    """
-    # Split text by pattern
+def split_by_chapter(text, pattern=r'\nChapter\s+\d+\s*[:.-]?\s*\n'):
+    '''
+    This function splits the texts into chapters. The chapter patterns
+    works by looking at
+
+    1: Starts with a new line
+    2: Matches the word chapter
+    3: Any number of white space after the word chapter
+    4: Any Digit after the white space
+    5: If there is anything after the number like :, ., - or nothing
+    6: Any optional spaces after the possible character from pattern 5
+    7: A new line after pattern 6
+
+    '''
+
+    # Split text by chapters
     parts = re.split(pattern, text)
-    if keep_separator:
-        # Find all separators
-        separators = re.findall(pattern, text)
-        # Combine parts with their corresponding separators
-        chunks = []
-        for i, part in enumerate(parts):
-            if i < len(separators):
-                chunks.append(part + separators[i])
-            else:
-                chunks.append(part)
-        return chunks
-    else:
-        return parts
+
+    return parts[1:]
     
 
-def removeAnythingBeforeContent(text:str):
+def remove_Anything_Before_Content(text:str):
+    '''
+    This function searches for the first instance of the word content
+    and then removes any text prior to that word
+    '''
 
     index = text.lower().find("contents")
 
@@ -53,6 +65,12 @@ def removeAnythingBeforeContent(text:str):
 
 
 def splitIntoChunks_to_MapToChapter(chapters:list):
+    '''
+    This function will split each chapters text into chunks.
+    It then creates a hashmap with format:
+
+    {1: text, 2: text, ....}
+    '''
     chapterChunksMap = {}
 
     # Create a text splitter instance with desired chunk size and overlap
@@ -65,25 +83,33 @@ def splitIntoChunks_to_MapToChapter(chapters:list):
     return chapterChunksMap
 
 
-def MapOfChapterWithChunks_to_DataFrame(map_of_chapter_with_chunks:dict):
+def mapOfChapterWithChunks_to_DataFrame(map_of_chapter_with_chunks:dict):
+    '''
+    This function makes turns the map of chapter with chunks into a dataframe 
+    with columns:
+    
+    Columns: | Chapter | Chunk Text |
+    '''
 
     data = []
 
     # Iterate over the chapters and their chunks
     for chapter, chunks in map_of_chapter_with_chunks.items():
-        for idx, chunk in enumerate(chunks, start=1):
+        for chunk in chunks:
             data.append({
                 'chapter': chapter,
-                'chunk_index': idx,
                 'chunk_text': chunk
             })
 
-    # Create the DataFrame
     df = pd.DataFrame(data)
 
     return df
 
-def RemoveAppendixFromFinalChapter(chapters, finalChapterIndex):
+def remove_Appendix_From_FinalChapter(chapters, finalChapterIndex):
+    '''
+    This will search for the word appendix that is attached to the 
+    last chapter and then remove appendix
+    '''
     index1 = chapters[finalChapterIndex].lower().find("appendix")
     chapters[finalChapterIndex] = chapters[finalChapterIndex][:index1]
     chapters = chapters[1:]

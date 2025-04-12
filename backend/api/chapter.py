@@ -2,8 +2,11 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import os
 import asyncpg
+from fastapi.responses import JSONResponse
+from fastapi import status
 
 router = APIRouter()
+
 
 class ChapterRequest(BaseModel):
     textbook: str
@@ -11,6 +14,10 @@ class ChapterRequest(BaseModel):
 
 @router.get("/api/getChapters")
 async def getChapters_endpoint(textbook: str):
+    '''
+    This api is used to retrieve every chapter within a textbook given
+    a existing textbook title
+    '''
 
     try:
         conn = await asyncpg.connect(
@@ -25,7 +32,6 @@ async def getChapters_endpoint(textbook: str):
         "SELECT id FROM textbooks WHERE title = $1;",
         textbook)
 
-
         if textbook_id is None:
             raise HTTPException(status_code=404, detail="Textbook not found")
 
@@ -35,10 +41,17 @@ async def getChapters_endpoint(textbook: str):
             textbook_id
         )
 
-        await conn.close()
 
+        # select only chapter_titles from row
         chapters = [row["chapter_title"] for row in rows]
-        return {"response": chapters}
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={"response": chapters}
+        )
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
+    finally:
+        await conn.close()
