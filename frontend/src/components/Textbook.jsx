@@ -2,7 +2,7 @@ import React from 'react';
 import './Textbook.css'
 import { useState } from 'react'
 
-const Textbook = ({ title, image, handleSubmit }) => {
+const Textbook = ({ title, image, desc, author, handleSubmit }) => {
 const [popup, setPopup] = useState(false)
 
   return (
@@ -28,8 +28,8 @@ const [popup, setPopup] = useState(false)
                     />
                     <div>
                         <h1>{title}</h1>
-                        <p>Nivar Sherwani, Bruno Zegada</p>
-                        <p className="desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore</p>
+                        <p>{author}</p>
+                        <p className="desc">{desc}</p>
                     </div>
                     <button className="sub-btn" onClick={() => handleSubmit(title, image)}>Confirm ✔️</button>
                 </div>

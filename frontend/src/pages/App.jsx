@@ -19,6 +19,7 @@ function App() {
               return response.json();
             })
             .then(data => {
+                console.log(data.response)
               setTextbooks(data.response);
               sessionStorage.setItem("textbooks", JSON.stringify(data.response));
             })
@@ -26,12 +27,15 @@ function App() {
         }
       }, []);
 
-      const imgs = ["https://greenteapress.com/thinkpython2/think_python2_medium.jpg"];
-      
-    // callback function: ???
-    const handleSubmit = (title, image) => {
-        navigate('/parameter_creation', { state: { title, image } });
-    }
+        // callback function: ???
+        const handleSubmit = (textbook) => {
+            navigate('/parameter_creation', {
+                state: {
+                    title: textbook.title,
+                    image: textbook.image_path,
+                },
+            });
+        }    
 
     return (
         <div className="container">
@@ -44,12 +48,14 @@ function App() {
                     <h2>Select a textbook <span className="celebrate-emoji">📚</span></h2>
                 </div>
                 <div className="textbook-container">
-                    {textbooks.map((title, index) => (
+                    {textbooks.map((textbook, index) => (
                         <Textbook
-                            image={imgs[index]} // set the image prop
                             key={index}
-                            title={title}
-                            handleSubmit={() => handleSubmit(title, imgs[index])}
+                            title={textbook.title}
+                            desc={textbook.description}
+                            author={textbook.author}
+                            image={textbook.image_path}
+                            handleSubmit={() => handleSubmit(textbook)}
                         />
                     ))}
                 </div>

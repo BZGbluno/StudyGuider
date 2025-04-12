@@ -2,45 +2,55 @@ import React from 'react'
 import './Test.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Flashcard from '../components/Flashcard';
 import { useState, useEffect } from 'react';
 
 function Test() {
     const navigate = useNavigate();
-    //    const location = useLocation();
-    //     const { selectedTitle, selectedChapter } = location.state || {};
+       const location = useLocation();
+        const { selectedTitle, selectedChapter } = location.state || {};
     
         const numQuestions = 10;
     
         // 1. POST Request: Summary Contents
-        // useEffect(() => {
-        //     const sendPostRequest = async () => {
-        //       try {
-        //         const response = await fetch('https://your-api.com/summary', {
-        //           method: 'POST',
-        //           headers: {
-        //             'Content-Type': 'application/json',
-        //           },
-        //           body: JSON.stringify({
-        //             title: selectedTitle,
-        //             chapter: selectedChapter,
-        //             numQuestions: numQuestions,
-        //           }),
-        //         });
+        useEffect(() => {
+            const fetchFlashcards = async () => {
+              try {
+                const response = await fetch('http://localhost:8000/api/generateFlashCard', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    chapter: selectedChapter,
+                    textbook: selectedTitle,
+                    count: numQuestions,
+                  })
+                });
           
-        //         const data = await response.json();
-        //         console.log("Response from server:", data);
+                const data = await response.json();
+                console.log("Response from server:", data);
+
+                const flashcards = data.response;
+
+                const formatted = Object.entries(flashcards).map(([key, [question, answer]]) => ({
+                    question,
+                    answer,
+                    isCorrect: null
+                }));
+
+                setCards(formatted);
     
-        //       } catch (error) {
-        //         console.error("POST request failed:", error);
-        //       }
-        //     };
+              } catch (error) {
+                console.error("POST request failed:", error);
+              }
+            };
           
-        //     if (selectedTitle && selectedChapter) {
-        //       sendPostRequest();
-        //     }
-        // }, [selectedTitle, selectedChapter]);
+            if (selectedTitle && selectedChapter) {
+              fetchFlashcards();
+            }
+        }, [selectedTitle, selectedChapter]);
 
     // 2. Render all the questions into cards: Array of Objects
     const [cards, setCards] = useState([
