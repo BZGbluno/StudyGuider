@@ -1,10 +1,15 @@
 import requests
+import os
+OLLAMA_HOST  = os.getenv("OLLAMA_HOST")
+OLLAMA_PORT  = os.getenv("OLLAMA_PORT")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")    
+TIMEOUT_SEC   = float(os.getenv("OLLAMA_TIMEOUT_SEC"))
+OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}/api/generate"
 
-url = "http://host.docker.internal:11435/api/generate"
 data = {
     "model": "llama3.1",
     "prompt": "warm up",
     "stream": False
 }
 
-requests.post(url, json=data)
+requests.post(OLLAMA_URL, json=data)

@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  ollama:
+    image: brunozeg/ollama-baked:llama3.1
+    container_name: ollama
+    # command: ["serve"]
+    ports:
+      - "11434:11434"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -I http://localhost:11434/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
   frontend:
     build: ./frontend
     container_name: studyguider_frontend
@@ -21,6 +34,7 @@ services:
       - ./backend/images:/images
     depends_on:
       - db
+      - ollama
 
     env_file:
       - .env
