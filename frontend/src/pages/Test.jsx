@@ -8,14 +8,36 @@ import { useState, useEffect } from 'react';
 
 function Test() {
     const navigate = useNavigate();
-       const location = useLocation();
-        const { selectedTitle, selectedChapter } = location.state || {};
+    const location = useLocation();
+    const { selectedTitle, selectedChapter } = location.state || {};
+    const { reshuffle = false } = location.state || {};
+
+    const [loading, setLoading] = useState(true);
     
-        const numQuestions = 10;
+        const numQuestions = 5;
     
         // 1. POST Request: Summary Contents
         useEffect(() => {
+            
+            const reshuffle = sessionStorage.getItem("reshuffle") === "true";
+
+            if (reshuffle) {
+                const cached = sessionStorage.getItem("cards");
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    const shuffled = [...parsed]
+                    .sort(() => Math.random() - 0.5)
+                    .map(card => ({ ...card, isCorrect: null}));
+                    setCards(shuffled);
+                    setLoading(false);
+                } else {
+                    console.warn("No cached cards found.");
+                }
+                return;
+            }
+
             const fetchFlashcards = async () => {
+                setLoading(true);
               try {
                 const response = await fetch('http://localhost:8000/api/generateFlashCard', {
                   method: 'POST',
@@ -41,9 +63,12 @@ function Test() {
                 }));
 
                 setCards(formatted);
+                sessionStorage.setItem("cards", JSON.stringify(formatted))
     
               } catch (error) {
                 console.error("POST request failed:", error);
+              } finally {
+                setLoading(false); // stop loading either way
               }
             };
           
@@ -53,11 +78,7 @@ function Test() {
         }, [selectedTitle, selectedChapter]);
 
     // 2. Render all the questions into cards: Array of Objects
-    const [cards, setCards] = useState([
-        { question: "What's your name?", answer: "Nivar", isCorrect: null },
-        { question: "What's your poop color bro?", answer: "Brown", isCorrect: null },
-        { question: "Mamaguevo or Mamahuevos?", answer: "Eggs", isCorrect: null },
-      ])
+    const [cards, setCards] = useState([])
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [correct, setCorrect] = useState(0);
     const [incorrect, setIncorrect] = useState(0);
@@ -66,6 +87,7 @@ function Test() {
 
     // 3. Handle user checking card, move onto the next
     const handleCheck = () => {
+        sessionStorage.removeItem("reshuffle");
         const updated = [...cards]; // unpack all the current cards
         updated[currentQuestionIndex].isCorrect = true;
         setCards(updated)
@@ -86,7 +108,7 @@ function Test() {
 
     // 4. Handle user x'ing card, move onto the next
     const handleX = () => {
-
+        sessionStorage.removeItem("reshuffle");
         const updated = [...cards]; // unpack all the current cards
         updated[currentQuestionIndex].isCorrect = false;
         setCards(updated)
@@ -107,40 +129,51 @@ function Test() {
         }
     }
 
+    const handleBack = () => {
+        sessionStorage.removeItem("reshuffle");
+        navigate(-1);
+    }
+
     return (
         <div className="t-container">
             <div className="test-container">
                 <div className="back-title">
                     <button
                     id="tst-btn"
-                    onClick={() => navigate(-1)}>
+                    onClick={() => handleBack()}>
                         <FontAwesomeIcon icon={faArrowLeft} size="2x" />
                     </button>
                     <div>
-                        <h2>{currentQuestionIndex + 1} / {cards.length}</h2>
+                        {
+                            loading ? (
+                                <h2></h2>
+                            ) : (
+                                <h2>{currentQuestionIndex + 1} / {cards.length}</h2>
+                            )}
                     </div>
                 </div>
 
-                {/* Render Flashcards Dynamically */}
-                <Flashcard
-                    Question={cards[currentQuestionIndex].question}
-                    Answer={cards[currentQuestionIndex].answer}
-                    flipped={flipped}
-                    setFlipped={setFlipped}
-                    disableAnimation={disableAnimation}
-                />
-                <div className="button-container">
-                    <button
-                    id="x"
-                    onClick={handleX}>
-                        <FontAwesomeIcon icon={faXmark} size="2x" />
-                    </button>
-                    <button 
-                    id="check"
-                    onClick={handleCheck}>
-                        <FontAwesomeIcon icon={faCheck} size="2x" />
-                    </button>
-                </div>
+                { loading ? (
+                    <p>Loading...</p>
+                ) : (
+                    <>
+                    <Flashcard
+                        Question={cards[currentQuestionIndex].question}
+                        Answer={cards[currentQuestionIndex].answer}
+                        flipped={flipped}
+                        setFlipped={setFlipped}
+                        disableAnimation={disableAnimation}
+                    />
+                    <div className="button-container">
+                        <button id="x" onClick={handleX}>
+                            <FontAwesomeIcon icon={faXmark} size="2x" />
+                        </button>
+                        <button id="check" onClick={handleCheck}>
+                            <FontAwesomeIcon icon={faCheck} size="2x" />
+                        </button>
+                    </div>
+                </>
+                )}
             </div>
         </div>
     )

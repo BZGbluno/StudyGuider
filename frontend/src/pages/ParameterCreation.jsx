@@ -74,7 +74,7 @@ function ParameterCreation() {
         <div className="p-container">
             <div className="back-title">
                 <button
-                onClick={() => navigate(-1)}>
+                onClick={() => navigate("/")}>
                     <FontAwesomeIcon icon={faArrowLeft} size="2x" />
                 </button>
                 <h2 className="section-title">

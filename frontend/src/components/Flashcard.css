@@ -41,6 +41,7 @@
   font-size: 1.2rem;
   border: 3px solid #0000001f;
   border-radius: 8px;
+  text-align: center;
 }
 
 .card-front {

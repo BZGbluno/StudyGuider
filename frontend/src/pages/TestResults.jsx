@@ -11,7 +11,7 @@ import { useWindowSize } from '@react-hook/window-size';
 function TestResults() {
 
     const [width, height] = useWindowSize();
-    const location = useLocation()
+    const location = useLocation();
 
     const [showConfetti, setShowConfetti] = useState(false);
     const { cards = [] } = location.state || {};
@@ -29,6 +29,18 @@ function TestResults() {
         return () => clearTimeout(timeout);
       }
     }, []);
+
+    const handleReshuffle = () => {
+
+        sessionStorage.setItem("reshuffle", "true");
+        navigate(-1)
+
+        // pass true to previous page
+        // navigate('/test', {
+        //     replace: true,
+        //     state: { reshuffle: true }
+        // });
+    };
 
     const navigate = useNavigate();
 
@@ -63,7 +75,7 @@ function TestResults() {
                     })}
                 </div>
                 <div className="button-container">
-                    {
+                    {/* {
                         incorrectCards.length > 0 ? ( // new behavior:
                             <button
                             id="try"
@@ -83,7 +95,14 @@ function TestResults() {
                                 </h2>
                             </button>
                         )
-                    }
+                    } */}
+                    <button
+                        id="try"
+                        onClick={() => handleReshuffle()}>
+                            <h2>
+                                Try Again & Shuffle 🔁
+                            </h2>
+                    </button>
                     <button
                     id="try"
                     onClick={() => navigate(-2)}>

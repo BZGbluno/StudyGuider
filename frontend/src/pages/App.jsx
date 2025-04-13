@@ -41,6 +41,11 @@ function App() {
         <div className="container">
             <div className="welcome-container">
                 <h1>StudyGuido</h1>
+                <img 
+                        src="../../public/guido2.png"
+                        alt="GuidoBot"
+                        className="img-g"
+                />
                 <p>A study helper to assist you in learning more effectively from textbooks by using AI-powered tools. </p>
             </div>
             <div>

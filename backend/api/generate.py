@@ -26,10 +26,12 @@ async def generate_endpoint(request: PromptRequest):
         chapter: str
 
     '''
-
+    print("in\n\n")
     prompt = request.prompt
     chapter = request.chapter
     textbook = request.textbook
+
+    print("in\n\n")
 
     try:
         modelResponse = await generate_Helper(prompt, chapter, textbook)

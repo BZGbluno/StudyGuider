@@ -1,13 +1,17 @@
 import React, { useState } from 'react'
 import './Chatbot.css'
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { useTypewriter } from '../hooks/useTypewriter';
 
-function Chatbot() {
+function Chatbot({ selectedChapter, selectedTitle}) {
     const [inputValue, setInputValue] = useState('');
+    const [responseText, setResponseText] = useState('');
+    const [questionText, setQuestionText] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    const handleSend = () => {
+    const handleSend = async () => {
+        setLoading(true);
         if (!inputValue.trim()) return;
     
         if (inputValue.length > 50) {
@@ -19,37 +23,34 @@ function Chatbot() {
         // 1. POST request: message and return the response
         // use custom react hook to do typing effect
 
-    // useEffect(() => {
-    //     const sendPostRequest = async () => {
-    //       try {
-    //         const response = await fetch('https://your-api.com/summary', {
-    //           method: 'POST',
-    //           headers: {
-    //             'Content-Type': 'application/json',
-    //           },
-    //           body: JSON.stringify({
-    //             title: selectedTitle,
-    //             chapter: selectedChapter,
-    //           }),
-    //         });
-      
-    //         const data = await response.json();
-    //         console.log("Response from server:", data);
+        try {
+            setQuestionText(inputValue);
+            setInputValue('');
+            const response = await fetch('http://localhost:8000/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    prompt: inputValue,
+                    chapter: selectedChapter,
+                    textbook: selectedTitle,
+                }),
+            });
 
-    //       } catch (error) {
-    //         console.error("POST request failed:", error);
-    //       }
-    //     };
-      
-    //     if (selectedTitle && selectedChapter) {
-    //       sendPostRequest();
-    //     }
-    //   }, [selectedTitle, selectedChapter]);
+            const data = await response.json();
+            console.log("Response from server:", data);
 
-        console.log("Sending message:", inputValue);
-    
-        setInputValue('');
+            setResponseText(data.response || "No response received.");
+        } catch (error) {
+            console.error("POST request failed:", error);
+            setResponseText("Oops! Something went wrong.");
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const typedText = useTypewriter(responseText, 10); // Speed (ms per character)
     
 
     return (
@@ -58,9 +59,22 @@ function Chatbot() {
                 <h2>Ask AI</h2>
             </div>
             <div className="summary-scroll-chatbot">
-                <p className="typing-summary">
-                    Ask my goat for advice!
-                </p>
+                <div className="typing-summary-chat">
+                    {loading ? (
+                        <p>Loading...</p>
+                    ) : (
+                        <>
+                            {questionText && (
+                            <div className="chat-question">
+                                <strong>You asked:</strong> {questionText}
+                            </div>
+                            )}
+                            <div className="chat-response">
+                            {typedText}
+                            </div>
+                        </>
+                    )}
+                </div>
             </div>
             <div className="text-send">
                 <input 

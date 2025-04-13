@@ -6,49 +6,73 @@ import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTypewriter } from '../hooks/useTypewriter';
 import Chatbot from '../components/Chatbot';
+import ReactMarkdown from 'react-markdown';
+
+function cleanMarkdownText(raw) {
+    return raw
+      .replace(/\r\n/g, '\n')         // Normalize line endings
+      .replace(/\n{3,}/g, '\n')     // No huge gaps
+      .replace(/[ \t]+\n/g, '\n')     // Trim whitespace at end of lines
+      .trim();
+  }
+  
 
 function Summary() {
 
+    const [fullSummary, setFullSummary] = useState("");
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
     const scrollRef = useRef(null);
     const { selectedTitle, selectedChapter } = location.state || {};
 
     // 1. POST Request: Summary Contents
-    // useEffect(() => {
-    //     const sendPostRequest = async () => {
-    //       try {
-    //         const response = await fetch('https://your-api.com/summary', {
-    //           method: 'POST',
-    //           headers: {
-    //             'Content-Type': 'application/json',
-    //           },
-    //           body: JSON.stringify({
-    //             title: selectedTitle,
-    //             chapter: selectedChapter,
-    //           }),
-    //         });
-      
-    //         const data = await response.json();
-    //         console.log("Response from server:", data);
-
-    //       } catch (error) {
-    //         console.error("POST request failed:", error);
-    //       }
-    //     };
-      
-    //     if (selectedTitle && selectedChapter) {
-    //       sendPostRequest();
-    //     }
-    //   }, [selectedTitle, selectedChapter]);
-
-
-    const fullSummary = `Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-  
-    Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-  
-    Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.
-    `;
+    useEffect(() => {
+        const cachedSummary = sessionStorage.getItem("summary");
+    
+        if (cachedSummary) {
+            const cleaned = cleanMarkdownText(cachedSummary);
+            setFullSummary(cleaned);
+            setLoading(false);
+            return; // Skip API call
+        }
+    
+        const fetchFlashcards = async () => {
+            try {
+                setLoading(true);
+                const response = await fetch('http://localhost:8000/api/generateSummary', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chapter: selectedChapter,
+                        textbook: selectedTitle,
+                    })
+                });
+    
+                const data = await response.json();
+                console.log("Response from server:", data);
+    
+                const sum = data.response;
+                console.log(sum);
+                setFullSummary(sum);
+    
+                // Save in sessionStorage
+                sessionStorage.setItem("summary", sum);
+    
+            } catch (error) {
+                console.error("POST request failed:", error);
+            } finally {
+                setLoading(false); // stop loading either way
+            }
+        };
+    
+        if (selectedTitle && selectedChapter) {
+            fetchFlashcards();
+        }
+    }, [selectedTitle, selectedChapter]);
+    
 
     const typedText = useTypewriter(fullSummary, 10); // Speed (ms per character)
     const [isUserScrolling, setIsUserScrolling] = useState(false);
@@ -104,12 +128,21 @@ function Summary() {
                     </div>
                 </div>
                 <div className="summary-scroll" ref={scrollRef}>
-                <p className="typing-summary">{typedText}
-                {typedText !== fullSummary && <span className="blinking-cursor">|</span>}
-                </p>
+                    { loading ? (
+                        <h2>Loading...</h2>
+                    ) : (
+                        <div className="typing-summary">
+                        <ReactMarkdown>
+                            {typedText}
+                        </ReactMarkdown>
+                    </div>
+                    )}
                 </div>
             </div>
-            <Chatbot />
+            <Chatbot 
+            selectedChapter={selectedChapter}
+            selectedTitle={selectedTitle}
+            />
         </div>
     )
 }

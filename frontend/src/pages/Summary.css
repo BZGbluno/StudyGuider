@@ -64,6 +64,9 @@
   }
 
   .summary-scroll {
+    overflow-x: hidden; /* Add this line */
+    word-wrap: break-word; /* Add this line */
+    overflow-wrap: break-word; /* For better browser support */
     overflow-y: auto;
     flex: 1;
     padding: 0px 1rem;
@@ -73,21 +76,47 @@
     width: 100%;
   }
 
+  .summary-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .summary-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+  }
+
+  .summary-scroll::-webkit-scrollbar-track {
+    background-color: transparent; /* removes white line */
+  }
+
   /* Summary.css */
 .typing-summary {
     white-space: pre-wrap;
     font-family: system-ui, sans-serif;
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 1.1rem;
+    line-height: 1.25;
     position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
   }
 
-  .blinking-cursor {
-    display: inline-block;
-    animation: blink 1s step-start infinite;
-    color: gray;
-  }
-  
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
+  .typing-summary h1,
+.typing-summary h2,
+.typing-summary h3 {
+    font-weight: bold;
+}
+
+.typing-summary code {
+    background-color: #ffaeae;
+    padding: 0.05em 0.4em;
+    border-radius: 8px;
+    font-family: monospace;
+}
+
+.typing-summary ul {
+    padding-left: 2.5rem;
+}
+
+.typing-summary ol {
+  padding-left: 2.5rem;
+}

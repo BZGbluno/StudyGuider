@@ -27,6 +27,12 @@ async def generate_endpoint(request: FlashRequest):
     textbook = request.textbook
     count = request.count
 
+    print(chapter)
+    print(textbook)
+    print(count)
+
+    print("\n\n")
+
     # Validate inputs first.
     if not textbook or not chapter or count <= 0:
         raise HTTPException(status_code=400, detail="Invalid textbook or chapter title")
@@ -51,6 +57,7 @@ async def generate_endpoint(request: FlashRequest):
         """, textbook, chapter)
 
 
+
         if res == None:
             raise HTTPException(status_code=400, detail="Invalid textbook or chapter name")
 
@@ -66,7 +73,11 @@ async def generate_endpoint(request: FlashRequest):
         """, textbook_id, chapter_number)
 
 
+
         chunkCount = int(chunkCount['count'])
+
+        print(chunkCount)
+
 
         if chunkCount <= 0:
             raise HTTPException(status_code=404, detail="No text chunks found for the given chapter.")
@@ -74,6 +85,9 @@ async def generate_endpoint(request: FlashRequest):
         # if request more than available chunks
         if count > chunkCount:
             count = chunkCount
+        print("-------------------------------------")
+        print(f"There is a Chunk total of {chunkCount}")
+        print(f"There is a Count total of {count}\n\n")
 
         question_answer_pair = {}
         selectedChunks = set()
@@ -86,6 +100,10 @@ async def generate_endpoint(request: FlashRequest):
                     selectedChunks.add(random_chunk)
                     break 
 
+            
+            print(f'This is the chunk: {random_chunk}')
+            print(f'This is the count: {c}')
+
 
             # Retrieve Random chunk
             chunk = await conn.fetchrow("""
@@ -94,17 +112,22 @@ async def generate_endpoint(request: FlashRequest):
             WHERE textbook_id = $1 AND chapter_number = $2 AND chunk_index = $3;
             """, textbook_id, chapter_number, random_chunk)
 
+            print(chunk)
+
             if chunk is None:
                 continue
 
 
-            prompt = f"Context: {chunk}\nCreate a question using the context and provide an answer to the question.\
-                Format:\nQuestion:\nAnswer:"
-            
+            # prompt = f"Context: {chunk}\nCreate a question using the context and provide an answer to the question.\
+            #     Format:\nQuestion:\nAnswer:"
+
+            prompt = "Generate me a question and provide an answer:\nFormat:\nQuestion:\nAnswer:"
         
             
             try:
+                print("Generating...........\n\n")
                 modelResponse = await getModelResponse(prompt)
+                print(modelResponse)
             except Exception as e:
                 continue
 
@@ -129,6 +152,7 @@ async def generate_endpoint(request: FlashRequest):
             
         
         if not question_answer_pair:
+            print("Here")
             raise HTTPException(status_code=422, detail="No valid flashcards were generated.")
 
 
