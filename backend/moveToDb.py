@@ -61,14 +61,14 @@ async def fillTables():
                     """, next_id, chapter_id, chapter_title)
 
                     # adding the vector embeddings by iterating by rows from groups
-                    for index, row in group.iterrows():
+                    for chunk_index, (_, row) in enumerate(group.iterrows(), start=1):
                         embedding_str = row['text_vector_embeddings']
                         chunk_text = row['chunk_text']
 
                         await conn.execute("""
                             INSERT INTO chapter_embeddings (textbook_id, chapter_number, chunk_index, embedding, chunk_text)
                             VALUES ($1, $2, $3, $4, $5);
-                        """, next_id, chapter_id, index, embedding_str, chunk_text)
+                        """, next_id, chapter_id, chunk_index, embedding_str, chunk_text)
 
             await conn.close()
             print("✅ All Data Was Added To Tables")

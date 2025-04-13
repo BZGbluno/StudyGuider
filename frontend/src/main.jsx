@@ -7,6 +7,8 @@ import ParameterCreation from './pages/ParameterCreation'
 import Summary from './pages/Summary.jsx'
 import Test from './pages/Test.jsx'
 import TestResults from './pages/TestResults.jsx'
+import Admin from './pages/Admin.jsx'
+
 
 
 createRoot(document.getElementById('root')).render(
@@ -18,6 +20,7 @@ createRoot(document.getElementById('root')).render(
                 <Route path="/summary" element={<Summary />} />
                 <Route path="/test" element={<Test />} />
                 <Route path="/results" element={<TestResults />} />
+                <Route path="/admin" element={<Admin /> } />
             </Routes>
         </Router>
     </StrictMode>,

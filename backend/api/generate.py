@@ -19,6 +19,12 @@ async def generate_endpoint(request: PromptRequest):
     This will generate a response using a prompt and provide 
     context to the prompt using a corresponding textbook and
     chapter title
+
+    Inputs:
+        prompt: str
+        textbook: str
+        chapter: str
+
     '''
 
     prompt = request.prompt
@@ -28,17 +34,12 @@ async def generate_endpoint(request: PromptRequest):
     try:
         modelResponse = await generate_Helper(prompt, chapter, textbook)
 
-        if modelResponse is None:
-
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="An unexpected error occurred on the server."
-            )
-
         return JSONResponse(
         status_code=status.HTTP_200_OK,
         content={"response": modelResponse}
         )
     
+    except HTTPException:
+        raise
     except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+        raise

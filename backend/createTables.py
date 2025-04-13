@@ -4,6 +4,8 @@ import time
 import asyncpg
 import asyncio
 
+# docker exec -it studyguider_db psql -U bruno -d mydb
+
 max_retries = 10
 retry_delay = 2
 async def init_db():
@@ -56,7 +58,8 @@ async def init_db():
     - username      : VARCHAR(150) UNIQUE NOT NULL — login name
     - email         : VARCHAR(255) UNIQUE NOT NULL — user email
     - password_hash : TEXT NOT NULL — hashed password
-    - full_name     : VARCHAR(255) — optional full name
+    - first_name    : VARCHAR(255) — optional
+    - last_name     : VARCHAR(255) — optional
     - created_at    : TIMESTAMP DEFAULT NOW() — account creation time
     - provider      : VARCHAR(50) — e.g., 'google', 'github'
     - provider_id   : VARCHAR(255) — ID from OAuth provider
@@ -133,7 +136,8 @@ async def init_db():
             username VARCHAR(150) UNIQUE NOT NULL,
             email VARCHAR(255) UNIQUE NOT NULL,
             password_hash TEXT NOT NULL,
-            full_name VARCHAR(255),
+            first_name VARCHAR(255),
+            last_name VARCHAR(255),
             created_at TIMESTAMP DEFAULT NOW(),
             provider VARCHAR(50),
             provider_id VARCHAR(255),

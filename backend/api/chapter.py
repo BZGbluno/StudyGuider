@@ -27,7 +27,6 @@ async def getChapters_endpoint(textbook: str):
         password=os.getenv("DATABASE_PASSWORD")
         )
 
-
         textbook_id = await conn.fetchval(
         "SELECT id FROM textbooks WHERE title = $1;",
         textbook)
@@ -41,6 +40,8 @@ async def getChapters_endpoint(textbook: str):
             textbook_id
         )
 
+        if rows is None:
+            raise HTTPException(status_code=404, detail="Chater Titles not found")
 
         # select only chapter_titles from row
         chapters = [row["chapter_title"] for row in rows]
@@ -49,6 +50,9 @@ async def getChapters_endpoint(textbook: str):
             status_code=status.HTTP_200_OK,
             content={"response": chapters}
         )
+    
+    except HTTPException:
+        raise
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

@@ -45,8 +45,7 @@ def _generate_embeddings_blocking(texts):
         return embeddings.cpu().numpy().tolist()
     
     except Exception as e:
-        print(f"Error generating embeddings: {e}")
-        return None 
+        raise RuntimeError(f"Error generating embeddings: {e}")
 
 
 async def getModelResponse(prompt: str) -> str:
@@ -57,27 +56,27 @@ async def getModelResponse(prompt: str) -> str:
 
     url = "http://host.docker.internal:11435/api/generate"
     data = {
-        "model": "llama3.2",
+        "model": "llama3.1",
         "prompt": f"p{prompt}",
         "stream": False
     }
-    
+    timeout = httpx.Timeout(60.0)
     try: 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(url, json=data)
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            resp = await client.post(url, json=data)
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Failed to connect to Ollama: {e}"
+        )
+    resp.raise_for_status()
+    if resp.status_code != 200:
+        raise HTTPException(status_code=resp.status_code, detail=resp.text)
 
+    data = resp.json()
+    return data.get("response", "")
 
-            if response.status_code != 200:
-                return f"Error: {response.status_code}"
-            
-            result = response.json()
-
-            return result.get("response", "")
-
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return "Error: An unexpected issue occurred."
-
+    
 
 async def generate_Helper(prompt, chapter, textbook):
     '''
@@ -85,12 +84,23 @@ async def generate_Helper(prompt, chapter, textbook):
     run similairity search on a chapters vector embeddings based
     on its textbook 
     '''
-    
-    embedding = await generate_embeddings(prompt)
-    
-    # embedding is none then return none
-    if embedding == None:
-        return None
+
+    # checking for the prompt to be less than or equal to 50 words
+    try:
+        if len(prompt.split()) > 50:
+            raise ValueError("Prompt too long: keep it below 50 words")
+    except ValueError as e:
+
+        raise HTTPException(
+            status_code=400,
+            detail=str(e)
+        )
+
+    try:
+        embedding = await generate_embeddings(prompt)
+    except Exception as e:
+        raise
+
     
     # set embedding to string of float32 values
     embedding = str(np.array(embedding).astype("float32")[0].tolist())
@@ -110,9 +120,12 @@ async def generate_Helper(prompt, chapter, textbook):
             WHERE t.title = $1 AND c.chapter_title = $2;
         """, textbook, chapter)
 
+        
         if not res:
-            print("Could not find matching chapter.")
-            return None
+            raise HTTPException(
+                status_code=404,
+                detail=f"Chapter {chapter} not found or textbook {textbook} not found.")
+
 
         textbook_id = res["textbook_id"]
         chapter_number = res["chapter_number"]
@@ -122,32 +135,38 @@ async def generate_Helper(prompt, chapter, textbook):
             FROM chapter_embeddings
             WHERE textbook_id = $2 AND chapter_number = $3
             ORDER BY distance ASC
-            LIMIT 2;
+            LIMIT 1;
         """, embedding, textbook_id, chapter_number)
 
         if not rows:
-            print("No rows found")
-            return None
+            raise HTTPException(
+                status_code=404,
+                detail=f"Empty Table Row")
         
-
         # combine context and make a prompt
         context = "\n".join(row[0] for row in rows)
-        prompt = f"Context:\n{context}\n\nQuestion: {prompt}\nAnswer:"
+        prompt = f"Context:\n{context}\n\nQuestion: {prompt}\nAnswer: Provide a concise response\nIf no similiar content then respond with: No Context Applies"
 
         try:
-            ans = await getModelResponse(prompt)
+            answer = await getModelResponse(prompt)
+            if not answer:
+                raise HTTPException(
+                    status_code=502,
+                    detail="Empty response from model."
+                )
 
-            if not ans:
-                # Handle empty response
-                print("Warning: Model returned an empty string.")
-                raise HTTPException(status_code=500, detail="Empty response from model.")
+        except HTTPException:
+            raise
 
-        except Exception as e:
-            print(f"Failed to get model response: {e}")
+        except Exception:
             raise HTTPException(status_code=500, detail="Model Generation Error.")
 
-        return ans
+        return answer
     
+    except ValueError:
+        raise 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:

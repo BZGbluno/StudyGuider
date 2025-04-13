@@ -29,7 +29,7 @@ async def generate_endpoint(request: FlashRequest):
 
     # Validate inputs first.
     if not textbook or not chapter or count <= 0:
-        raise HTTPException(status_code=400, detail="Invalid textbook, chapter, or count provided.")
+        raise HTTPException(status_code=400, detail="Invalid textbook or chapter title")
 
     try:
         conn = await asyncpg.connect(
@@ -52,7 +52,7 @@ async def generate_endpoint(request: FlashRequest):
 
 
         if res == None:
-            raise HTTPException(status_code=404, detail="Chapter not found in textbook.")
+            raise HTTPException(status_code=400, detail="Invalid textbook or chapter name")
 
 
         # Extract the amount of chunks in the chapter
@@ -137,7 +137,8 @@ async def generate_endpoint(request: FlashRequest):
         content={"response": question_answer_pair}
         )
 
-
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:

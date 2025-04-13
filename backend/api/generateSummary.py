@@ -42,7 +42,7 @@ async def generate_endpoint(request: SummaryRequest):
         """, textbook, chapter)
 
         if res == None:
-            raise HTTPException(status_code=404, detail="Chapter not found in textbook.")
+            raise HTTPException(status_code=400, detail="Invalid textbook or chapter title")
 
         # Extract the amount of chunks in the chapter
         textbook_id = res["textbook_id"]
@@ -88,6 +88,9 @@ async def generate_endpoint(request: SummaryRequest):
             status_code=status.HTTP_200_OK,
             content={"response": modelResponse}
         )
+    
+    except HTTPException:
+        raise
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")

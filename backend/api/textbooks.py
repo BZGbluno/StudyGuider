@@ -42,6 +42,8 @@ async def getTextbooks_endpoint():
             content={"response": textbooks}
             )
 
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
