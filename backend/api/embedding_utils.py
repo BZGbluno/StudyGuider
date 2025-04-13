@@ -7,6 +7,11 @@ import asyncpg
 import asyncio
 from fastapi import HTTPException
 
+OLLAMA_HOST  = os.getenv("OLLAMA_HOST")        # in Compose, service name "ollama"
+OLLAMA_PORT  = os.getenv("OLLAMA_PORT")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL")     # default model
+TIMEOUT_SEC   = float(os.getenv("OLLAMA_TIMEOUT_SEC"))
+OLLAMA_URL = f"http://{OLLAMA_HOST}:{OLLAMA_PORT}/api/generate"
 
 # OLLAMA_HOST=127.0.0.1:11435 ollama serve
 
@@ -54,16 +59,15 @@ async def getModelResponse(prompt: str) -> str:
     generated
     '''
 
-    url = "http://host.docker.internal:5000/api/generate"
     data = {
-        "model": "llama3.2:latest",
-        "prompt": f"p{prompt}",
+        "model": OLLAMA_MODEL,
+        "prompt": prompt,
         "stream": False
     }
     timeout = httpx.Timeout(60.0)
     try: 
         async with httpx.AsyncClient(timeout=timeout) as client:
-            resp = await client.post(url, json=data)
+            resp = await client.post(OLLAMA_URL, json=data)
     except httpx.RequestError as e:
         raise HTTPException(
             status_code=503,
