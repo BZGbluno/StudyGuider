@@ -61,8 +61,8 @@ function Chatbot({ selectedChapter, selectedTitle}) {
             <div className="summary-scroll-chatbot">
                 <div className="typing-summary-chat">
                     {loading ? (
-                        <p>Loading...</p>
-                    ) : (
+                        <img className="giffy-chat" src="../../public/spin.gif" alt="loading animation" />
+                ) : (
                         <>
                             {questionText && (
                             <div className="chat-question">

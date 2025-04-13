@@ -21,6 +21,17 @@
     position: relative;
     margin-top: 1rem;
     margin-bottom: 1rem;
+
+      /* New: center children */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+  }
+
+  .giffy-chat {
+    margin-top: 7rem;
+    width: 100px;
   }
 
   .text-send {

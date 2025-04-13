@@ -26,9 +26,16 @@ function Summary() {
     const scrollRef = useRef(null);
     const { selectedTitle, selectedChapter } = location.state || {};
 
+    function makeSummaryKey(title, chapter) {
+        return `summary:${title}:${chapter}`;
+      }
+
     // 1. POST Request: Summary Contents
     useEffect(() => {
-        const cachedSummary = sessionStorage.getItem("summary");
+        if (!selectedTitle || !selectedChapter) return;
+
+        const summaryKey = makeSummaryKey(selectedTitle, selectedChapter);
+        const cachedSummary = sessionStorage.getItem(summaryKey);
     
         if (cachedSummary) {
             const cleaned = cleanMarkdownText(cachedSummary);
@@ -59,7 +66,7 @@ function Summary() {
                 setFullSummary(sum);
     
                 // Save in sessionStorage
-                sessionStorage.setItem("summary", sum);
+                sessionStorage.setItem(summaryKey, sum);
     
             } catch (error) {
                 console.error("POST request failed:", error);
@@ -129,8 +136,10 @@ function Summary() {
                 </div>
                 <div className="summary-scroll" ref={scrollRef}>
                     { loading ? (
-                        <h2>Loading...</h2>
-                    ) : (
+                        <div className="loading-container">
+                            <img className="giffy" src="../../public/spin.gif" alt="loading animation" />
+                        </div>
+                ) : (
                         <div className="typing-summary">
                         <ReactMarkdown>
                             {typedText}

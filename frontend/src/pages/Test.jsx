@@ -154,7 +154,7 @@ function Test() {
                 </div>
 
                 { loading ? (
-                    <p>Loading...</p>
+                    <img className="giffy" src="../../public/spin.gif" alt="loading animation" />
                 ) : (
                     <>
                     <Flashcard

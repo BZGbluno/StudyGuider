@@ -76,6 +76,17 @@
     width: 100%;
   }
 
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+  }
+
+  .giffy {
+    width: 100px;
+  }
+
   .summary-scroll::-webkit-scrollbar {
     width: 8px;
   }
@@ -111,6 +122,9 @@
     padding: 0.05em 0.4em;
     border-radius: 8px;
     font-family: monospace;
+    white-space: pre-wrap; /* Allows wrapping */
+    word-break: break-word; /* Break long strings */
+    overflow-wrap: break-word; /* For wider browser support */
 }
 
 .typing-summary ul {
