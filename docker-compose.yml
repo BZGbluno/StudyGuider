@@ -4,10 +4,10 @@ services:
   ollama:
     image: brunozeg/ollama-baked:llama3.1
     container_name: ollama
-    # command: ["serve"]
     ports:
       - "11434:11434"
     restart: unless-stopped
+
     healthcheck:
       test: ["CMD-SHELL", "curl -I http://localhost:11434/"]
       interval: 30s

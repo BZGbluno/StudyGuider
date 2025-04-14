@@ -14,8 +14,9 @@ function Chatbot({ selectedChapter, selectedTitle}) {
         setLoading(true);
         if (!inputValue.trim()) return;
     
-        if (inputValue.length > 50) {
-            alert("Please limit your message to 50 characters or fewer.");
+        if (inputValue.length > 250) {
+            alert("Please limit your message to 250 characters or fewer.");
+            setLoading(false);
             return;
         }
     
@@ -41,9 +42,19 @@ function Chatbot({ selectedChapter, selectedTitle}) {
             const data = await response.json();
             console.log("Response from server:", data);
 
+            if (response.status === 400) {
+                console.log(data.detail)
+                alert(data.detail)
+            }
+
             setResponseText(data.response || "No response received.");
         } catch (error) {
             console.error("POST request failed:", error);
+            // 400 Error
+            // 'Prompt too long: keep it below 50 words'
+
+
+
             setResponseText("Oops! Something went wrong.");
         } finally {
             setLoading(false);
@@ -56,12 +67,12 @@ function Chatbot({ selectedChapter, selectedTitle}) {
     return (
         <div className="chatbot-container chatbot-fade-in">
             <div>
-                <h2>Ask AI</h2>
+                <h2>Ask Guido</h2>
             </div>
             <div className="summary-scroll-chatbot">
                 <div className="typing-summary-chat">
                     {loading ? (
-                        <img className="giffy-chat" src="../../public/spin.gif" alt="loading animation" />
+                        <img className="giffy-chat" src="/spin.gif" alt="loading animation" />
                 ) : (
                         <>
                             {questionText && (

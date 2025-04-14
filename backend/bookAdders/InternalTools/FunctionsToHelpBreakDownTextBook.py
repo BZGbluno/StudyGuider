@@ -112,6 +112,5 @@ def remove_Appendix_From_FinalChapter(chapters, finalChapterIndex):
     '''
     index1 = chapters[finalChapterIndex].lower().find("appendix")
     chapters[finalChapterIndex] = chapters[finalChapterIndex][:index1]
-    chapters = chapters[1:]
 
     return chapters

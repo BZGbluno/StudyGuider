@@ -137,7 +137,7 @@ function Summary() {
                 <div className="summary-scroll" ref={scrollRef}>
                     { loading ? (
                         <div className="loading-container">
-                            <img className="giffy" src="../../public/spin.gif" alt="loading animation" />
+                            <img className="giffy" src="/spin.gif" alt="loading animation" />
                         </div>
                 ) : (
                         <div className="typing-summary">

@@ -30,7 +30,6 @@ async def generate_endpoint(request: FlashRequest):
     print(chapter)
     print(textbook)
     print(count)
-
     print("\n\n")
 
     # Validate inputs first.
@@ -118,16 +117,13 @@ async def generate_endpoint(request: FlashRequest):
                 continue
 
 
-            # prompt = f"Context: {chunk}\nCreate a question using the context and provide an answer to the question.\
-            #     Format:\nQuestion:\nAnswer:"
-
-            prompt = "Generate me a question and provide an answer:\nFormat:\nQuestion:\nAnswer:"
+            prompt = f"Context: {chunk}\nCreate a question using the context and provide an answer to the question.\
+                Format:\nQuestion:\nAnswer:"
         
             
             try:
                 print("Generating...........\n\n")
                 modelResponse = await getModelResponse(prompt)
-                print(modelResponse)
             except Exception as e:
                 continue
 
