@@ -40,20 +40,25 @@ def get_jwt():
 
     return response.json()["access_token"]
 
-
-TOKEN = get_jwt()
-
 AUTH_HEADERS = {
     "Content-Type": "application/json",
     "Authorization": f"Bearer {TOKEN}",
 }
 
+TOKEN = get_jwt()
+
+
 
 def testUserCreation():
     url = "http://0.0.0.0:8000/api/createUser"
 
+    json = {
+        "username": "pierce",
+    }
+
     response = requests.post(
         url=url,
+        json=json,
         headers={"Content-Type": "application/json", **AUTH_HEADERS},
     )
 
@@ -70,22 +75,96 @@ def testUserDeletion():
     print(response.json())
 
 
-test_no = 0
+def testUserUpdates():
+    url = "http://0.0.0.0:8000/api/updateUser"
+
+    json = {
+        "username": "pierce's cooler username",
+    }
+
+    response = requests.put(url=url, json=json, headers=AUTH_HEADERS)
+
+    print("Updated USER")
+    print(response.json())
+
+
+def testUserGet():
+    url = "http://0.0.0.0:8000/api/users/me"
+
+    response = requests.get(url, headers=AUTH_HEADERS)
+
+    print("USER json:")
+    print(response.json())
+
+
+test_no = 1
+
+<<<<<<< Updated upstream
 match test_no:
+
     case 0:
-        """
-        Test 1: Basic User creation:
-        """
-        testUserCreation()
+        testUserGet()
+
     case 1:
         """
-        Test 2: Basic User deletion:
-        """
-        testUserDeletion()
-    case 2:
-        """
-        Test 3: Creation+Deletion combined:
+        Test 1: Basic User creation and viewing of username:
         """
         testUserCreation()
-        time.sleep(10)  
+
+    case 2:
+        """
+        Test 2: Update username and view result:
+        """
+        testUserUpdates()
+        testUserGet()
+
+    case 3:
+        """
+        Test 3: Delete user:
+        """
         testUserDeletion()
+
+    case 4:
+        """
+        Test 4: All tests combined:
+        """
+        testUserCreation()
+        time.sleep(5)  
+        testUserGet()
+        time.sleep(5)
+        testUserUpdates()
+        time.sleep(5)
+        testUserGet()
+        time.sleep(5)
+        testUserDeletion()
+=======
+if test_no == 0:
+    print(get_jwt())
+    testUserGet()
+elif test_no == 1:
+    """
+    Test 1: Basic User creation and viewing of username:
+    """
+    testUserCreation()
+    testUserGet()
+elif test_no == 2:
+    """
+    Test 2: Update username and view result:
+    """
+    testUserUpdates()
+    testUserGet()
+elif test_no == 3:
+    """
+    Test 3: Delete user:
+    """
+    testUserDeletion()
+elif test_no == 4:
+    """
+    Test 4: All tests combined:
+    """
+    testUserCreation()
+    testUserGet()
+    testUserUpdates()
+    testUserGet()
+    testUserDeletion()
+>>>>>>> Stashed changes

@@ -16,7 +16,15 @@ redis_client = redis.Redis(
     host=os.getenv("REDIS_HOST", "localhost"),
     port=int(os.getenv("REDIS_PORT", "6379")),
     db=int(os.getenv("REDIS_DB", "0")),
+    decode_responses=True,
 )
+
+# 24h: long enough for user to resume across normal idle gaps; refreshed on every openChapter.
+ACTIVE_CHAPTER_TTL_SECONDS = 60 * 60 * 24
+
+
+def _active_chapter_key(supabase_uid: str, textbook_id) -> str:
+    return f"active_chapter:{supabase_uid}:{textbook_id}"
 
 class ChapterRequest(BaseModel):
     textbook: int
@@ -25,7 +33,7 @@ class ChapterRequest(BaseModel):
 #Used to reopen a chapter with Redis cache
 class ChapterOpenRequest(BaseModel):
     textbook: int
-    chapter_title: str
+    chapter: str
     user_id: str
 
 
@@ -84,22 +92,69 @@ async def redis_health():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
 
+
+@router.get("/api/activeChapter")
+async def get_active_chapter(textbook_id: int, user_id=Depends(verify_jwt)):
+    """Return the last opened chapter for (user, textbook) or null if none cached."""
+    supabase_uid = user_id.get("sub")
+    if not supabase_uid:
+        raise HTTPException(status_code=401, detail="Missing UID")
+
+    key = _active_chapter_key(supabase_uid, textbook_id)
+    try:
+        raw = await redis_client.get(key)
+    except Exception as e:
+        logger.exception("activeChapter Redis error")
+        raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
+
+    print(f"[activeChapter] key={key} value={raw!r}", flush=True)
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"active_chapter": raw if raw else None},
+    )
+
+
 @router.post("/api/openChapter")
 async def openChapter_endpoint(request: ChapterOpenRequest, user_id=Depends(verify_jwt)):
     supabase_uid = user_id.get("sub")
     if not supabase_uid:
         raise HTTPException(status_code=401, detail="Missing UID")
 
+    # Always log once per request (Docker / uvicorn stdout). Browser DevTools will NOT show this.
+    print(
+        f"[openChapter] uid={supabase_uid} textbook={request.textbook} chapter={request.chapter!r}",
+        flush=True,
+    )
+    logger.info(
+        "openChapter textbook=%s chapter=%s uid=%s",
+        request.textbook,
+        request.chapter,
+        supabase_uid,
+    )
+
+    chapter_label = request.chapter
+    #detail_key = f"chapter:{request.textbook}:{chapter_label}:{supabase_uid}"
+    active_key = _active_chapter_key(supabase_uid, request.textbook)
+
     try:
-        redis_key = f"chapter:{request.textbook}:{request.chapter_title}:{supabase_uid}"
-        ttl_seconds = 600
-        await redis_client.set(redis_key, request.chapter_title, ex=ttl_seconds)
+        # Refresh both: per-chapter detail key (existing behavior) and the canonical
+        # "last opened chapter" key that powers GET /api/activeChapter.
+        #await redis_client.set(detail_key, chapter_label, ex=ACTIVE_CHAPTER_TTL_SECONDS)
+        await redis_client.set(active_key, chapter_label, ex=ACTIVE_CHAPTER_TTL_SECONDS)
+        print(
+            f"[Redis] SET active={active_key} value={chapter_label}",
+            flush=True,
+        )
+
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={
                 "response": "Chapter opened successfully",
-                "active_chapter": request.chapter_title,
+                "active_chapter": chapter_label,
             },
         )
+
     except Exception as e:
+        logger.exception("openChapter Redis error")
         raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
+

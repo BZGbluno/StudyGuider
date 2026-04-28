@@ -313,7 +313,7 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
                     title = $1
                 WHERE id = $2;
                 """,
-                textbook_title,
+                book_title,
                 request.book_id,
             )
         except Exception as e:

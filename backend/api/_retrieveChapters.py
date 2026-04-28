@@ -153,7 +153,7 @@ def extract_chapters_from_pdf_Updated_Better_Version(pdf_path, supabase_uid):
 
     listOfChapters = []
 
-    output_dir = os.path.join(os.path.dirname(__file__), "..", "bookadders", "textbookPDFs")
+    output_dir = os.path.join(os.path.dirname(__file__), "..", "bookAdders", "textbookPDFs")
     os.makedirs(output_dir, exist_ok=True)
 
     run_id = str(uuid.uuid4())
