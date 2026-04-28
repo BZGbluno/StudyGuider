@@ -8,10 +8,12 @@ from api.user_studymat import router as user_studymat_router
 from api.context import router as context_router
 from api.voice import router as voice_router
 from api.delete_textbook import router as delete_textbook_router
+from api.s3 import router as s3_router
 
 from logging_config import setup_logging
 from api.generateFlashCard import router as flashcard_router
 from api.generateSummary import router as summary_router
+from api.askAI import router as askai_router
 
 # initiate logger
 setup_logging()
@@ -28,14 +30,16 @@ app.include_router(user_router)
 app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
+<<<<<<< HEAD
 app.include_router(delete_textbook_router)
+=======
+app.include_router(s3_router)
+>>>>>>> origin/integration
 
 # Change this to match your frontend port (3000)
 origins = [
     "http://localhost:3000",
-    "http://localhost:5173",
-    "http://localhost:5501",
-    "http://127.0.0.1:5501"
+    "http://localhost:5173"
 ]
 
 # Add CORS middleware to allow frontend to connect
@@ -48,6 +52,15 @@ app.add_middleware(
 )
 app.include_router(flashcard_router)
 app.include_router(summary_router)
+app.include_router(askai_router)
+
+# Health router for deployment testing
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "service": "backend",
+    }
 
 
 # uvicorn main:app --reload

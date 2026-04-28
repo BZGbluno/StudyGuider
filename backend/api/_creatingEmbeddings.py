@@ -1,10 +1,8 @@
 from api._VectorCreator import VectorEmbedder
 import api._FunctionsToHelpBreakDownTextBook as f
 import os
-import pandas as pd
 import asyncpg
 import asyncio
-import json
 from uuid import UUID
 
 

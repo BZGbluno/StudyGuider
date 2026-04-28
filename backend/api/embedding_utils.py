@@ -1,8 +1,5 @@
 import numpy as np
-from transformers import AutoTokenizer, AutoModel
-import torch
 import os
-import httpx
 import asyncpg
 import asyncio
 from fastapi import HTTPException
@@ -17,12 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Load tokenizer and model
 model_id = "sentence-transformers/all-MiniLM-L6-v2"
-tokenizer = AutoTokenizer.from_pretrained(model_id)
-model = AutoModel.from_pretrained(model_id)
-
-# Use MPS if available (Macs), otherwise CPU
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-model = model.to(device)
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
 async def generate_embeddings(texts):
@@ -37,22 +29,14 @@ def _generate_embeddings_blocking(texts):
     This is a blocking function that will generate embeddings for any given text
     using the all-MiniLM-L6-v2 model
     '''
-    request_id = str(uuid.uuid4())
-
     try:
-        logger.info(f"[{request_id}] Generating embeddings...")
         # Check input type
         if not isinstance(texts, (str, list)):
             raise ValueError("Input must be a string or list of strings.")
-        
-        inputs = tokenizer(texts, padding=True, truncation=True, return_tensors='pt').to(device)
-        with torch.no_grad():
-            outputs = model(**inputs)
-        embeddings = outputs.last_hidden_state.mean(dim=1)
-        return embeddings.cpu().numpy().tolist()
+
+        return model.encode(texts)
     
     except Exception as e:
-        logger.exception(f"[{request_id}] Error generating embeddings: {e}")
         raise RuntimeError(f"Error generating embeddings: {e}")
 
     
@@ -83,11 +67,10 @@ async def generate_contextHelper(transcript, chapter, textbook):
         )
 
         res = await conn.fetchrow("""
-            SELECT c.textbook_id, c.chapter_number
-            FROM chapters c
-            JOIN textbooks t ON c.textbook_id = t.id
-            WHERE t.title = $1 AND c.chapter_title = $2;
-        """, textbook, chapter)
+            SELECT textbook_id, chapter_number
+            FROM chapters
+            WHERE textbook_id = $1 AND chapter_number = $2;
+        """, textbook, int(chapter))
         
         if not res:
             logger.warning(f"[{request_id}] Chapter or textbook not found")

@@ -1,4 +1,6 @@
 .env
+.venv
+/scripts
 /backend/__pycache__
 /backend/api/__pycache__
 /backend/bookadders/textbookPDFs
