@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi import Response
 import asyncpg
 import os
 import logging
@@ -42,8 +43,8 @@ async def delete_textbook(textbook_id: UUID, user_id = Depends(verify_jwt)):
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail="Textbook not found")
         
-        return {"message": "Textbook deleted successfully!"}
-    
+        return Response(status_code=204)
+
     except HTTPException:
         raise
     
