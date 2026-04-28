@@ -7,6 +7,7 @@ from api.user import router as user_router
 from api.user_studymat import router as user_studymat_router
 from api.context import router as context_router
 from api.voice import router as voice_router
+from api.delete_textbook import router as delete_textbook_router
 from api.s3 import router as s3_router
 
 from logging_config import setup_logging
@@ -29,7 +30,11 @@ app.include_router(user_router)
 app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
+<<<<<<< HEAD
+app.include_router(delete_textbook_router)
+=======
 app.include_router(s3_router)
+>>>>>>> origin/integration
 
 # Change this to match your frontend port (3000)
 origins = [
