@@ -32,11 +32,8 @@ app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
 app.include_router(health_router)
-<<<<<<< HEAD
 app.include_router(delete_textbook_router)
-=======
 app.include_router(s3_router)
->>>>>>> origin/integration
 
 # Change this to match your frontend port (3000)
 origins = [
