@@ -5,7 +5,6 @@ import asyncpg
 from fastapi.responses import JSONResponse
 from fastapi import status
 import logging
-import uuid
 from api.auth import verify_jwt
 import redis.asyncio as redis
 from uuid import UUID

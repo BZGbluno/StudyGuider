@@ -1,14 +1,10 @@
 import boto3
 import os
 import uuid
-from pathlib import Path
-from fastapi import APIRouter, HTTPException, Depends, status, BackgroundTasks, Body
+from fastapi import APIRouter, HTTPException, Depends
 from api.auth import verify_jwt
 from pydantic import BaseModel
 import asyncpg 
-import time
-import re
-import fitz
 import api._retrieveChapters as rc
 import api._creatingEmbeddings as ce
 from uuid import UUID

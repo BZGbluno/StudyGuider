@@ -2,8 +2,6 @@ import fitz  # PyMuPDF
 import re
 import os
 import uuid
-from api.auth import verify_jwt
-from fastapi import Depends
 
 def is_non_chapter_title(title_lower):
     NON_CHAPTER_KEYWORDS = [

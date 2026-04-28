@@ -25,7 +25,7 @@ services:
       - .env
   
   backend:
-    build: .
+    build: ./backend
     container_name: studyguider_backend
     ports:
       - "8000:8000"

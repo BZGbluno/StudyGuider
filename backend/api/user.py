@@ -1,7 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 import os
 import asyncpg
 import logging
