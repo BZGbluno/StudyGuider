@@ -14,6 +14,7 @@ from logging_config import setup_logging
 from api.generateFlashCard import router as flashcard_router
 from api.generateSummary import router as summary_router
 from api.askAI import router as askai_router
+from api.healthCheck import router as health_router
 
 # initiate logger
 setup_logging()
@@ -30,6 +31,7 @@ app.include_router(user_router)
 app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
+app.include_router(health_router)
 <<<<<<< HEAD
 app.include_router(delete_textbook_router)
 =======
