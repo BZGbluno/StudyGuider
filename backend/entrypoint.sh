@@ -9,7 +9,7 @@ python moveToDb.py
 
 # python warmModel.py
 
-PYTHONPATH=. pytest testAPI/test_flashcard_integration.py -v
+PYTHONPATH=. pytest tests/test_flashcard_integration.py -v
  
 
 # starting up the server

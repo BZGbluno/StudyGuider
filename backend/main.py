@@ -33,6 +33,7 @@ app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
 app.include_router(s3_router)
+app.include()
 
 # Change this to match your frontend port (3000)
 origins = [
