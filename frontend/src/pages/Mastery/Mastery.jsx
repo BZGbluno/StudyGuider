@@ -131,6 +131,10 @@ export default function Mastery() {
                   {
                     type: "input_text",
                     text: `User query: ${userText}`
+                  },
+                  {
+                    type: "input_text",
+                    text: "Only use the given context if it is relevant to the current conversation. If it is not, reference previous conversion points."
                   }
                 ]
               }]
