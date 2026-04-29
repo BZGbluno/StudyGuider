@@ -110,6 +110,55 @@ async def get_textbook_title(
             await conn.close()
 
 
+@router.get("/api/getMetadata/{bookID}/{chapterID}")
+async def get_mastery_metadata(
+    bookID: UUID,
+    chapterID: int,
+    user_valid=Depends(verify_jwt)
+):
+    conn = None
+    try:
+        supabase_uid = user_valid.get("sub")
+        if not supabase_uid:
+            raise HTTPException(status_code=401, detail="Missing UID")
+        
+        conn = await asyncpg.connect(
+            host=os.getenv("DATABASE_HOST"),
+            database=os.getenv("DATABASE_NAME"),
+            user=os.getenv("DATABASE_USER"),
+            password=os.getenv("DATABASE_PASSWORD"),
+        )
+
+        row = await conn.fetchrow(
+            """
+            SELECT t.title as book_title, c.chapter_title 
+            FROM textbooks t
+            JOIN chapters c ON c.textbook_id = t.id
+            WHERE t.id = $1 AND c.chapter_number = $2 AND t.user_uid = $3
+            """,
+            bookID,
+            chapterID,
+            supabase_uid,
+        )
+
+        if not row:
+            raise HTTPException(status_code=404, detail="Textbook not found")
+        
+        return {
+            "textbookTitle": row["book_title"],
+            "chapterTitle": row["chapter_title"]
+        }
+    
+    except HTTPException:
+        raise
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+    finally:
+        if conn:
+            await conn.close()
+        
 
 
 

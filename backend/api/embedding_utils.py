@@ -54,7 +54,7 @@ async def generate_contextHelper(transcript, chapter, textbook):
         raise
     
     #set embeddings to string of float32 values
-    embedding = str(np.array(embedding).astype("float32")[0].tolist())
+    embedding = str(np.array(embedding).astype("float32").tolist())
 
     try:
         logger.info(f"[{request_id}] Connecting to database...")
@@ -173,7 +173,7 @@ async def generate_Helper(prompt, chapter, textbook):
 
     
     # set embedding to string of float32 values
-    embedding = str(np.array(embedding).astype("float32")[0].tolist())
+    embedding = str(np.array(embedding).astype("float32").tolist())
 
     try:
         logger.info(f"[{request_id}] Connecting to database....")

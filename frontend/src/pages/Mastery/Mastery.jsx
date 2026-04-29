@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams } from 'react-router-dom'
+import { supabase } from "../../services/supabaseClient";
 
 export default function Mastery() {
   const {bookId, chapterId } = useParams(); 
@@ -7,10 +8,13 @@ export default function Mastery() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [transcripts, setTranscripts] = useState([]);
   const [events, setEvents] = useState([]);
+  const [metadata, setMetadata] = useState({ book: '', chapter: '' });
   
   const audioRef = useRef(null);
   const pcRef = useRef(null);
   const dcRef = useRef(null);
+
+
 
   const logEvent = (type, data) => {
     setEvents((prev) => [
@@ -18,6 +22,46 @@ export default function Mastery() {
       { time: new Date().toLocaleTimeString(), type, data }
     ]);
   };
+
+  useEffect(() => {
+    async function fetchMetadata() {
+      try {
+        const session = await supabase.auth.getSession();
+        console.log("SESSION:", session);   
+        const token = session.data.session.access_token;
+        console.log("TOKEN:", token);
+
+        if (!token) {
+          console.error("No active session found");
+          return;
+        }
+
+        const res = await fetch(
+          `http://localhost:8000/api/getMetadata/${bookId}/${chapterId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+
+          setMetadata({
+            book: data.textbookTitle,
+            chapter: data.chapterTitle
+          })
+        }
+      } catch(err) {
+        console.error("Failed to load metadata:", err)
+      }
+    } 
+    if (bookId && chapterId) {
+      fetchMetadata();
+    }
+  }, [bookId, chapterId]);
+
+  console.log("TEXTBOOK NAME: ", metadata.book);
+  console.log("CHAPTER NAME: ", metadata.chapter);
 
   useEffect(() => {
     return () => {
@@ -103,10 +147,10 @@ export default function Mastery() {
             });
 
             if (!res.ok) {
-            // This will print the exact Pydantic validation error to your browser console
-            const errorDetails = await res.json();
-            console.error("FastAPI 422 Error:", JSON.stringify(errorDetails, null, 2));
-}
+              // This will print the exact Pydantic validation error to your browser console
+              const errorDetails = await res.json();
+              console.error("FastAPI 422 Error:", JSON.stringify(errorDetails, null, 2));
+            }
             const data = await res.json();
             chunks = data.response;
             console.log("Context fetched:", chunks);
@@ -126,11 +170,15 @@ export default function Mastery() {
                 content: [
                   {
                     type: "input_text",
-                    text: `Relevant Context: ${chunks}`
+                    text: `Current Textbook: ${metadata.book} Current Chapter: ${metadata.chapter}`
                   },
                   {
                     type: "input_text",
                     text: `User query: ${userText}`
+                  },
+                                    {
+                    type: "input_text",
+                    text: `Relevant Context: ${chunks}`
                   },
                   {
                     type: "input_text",
