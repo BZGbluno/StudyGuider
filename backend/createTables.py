@@ -206,3 +206,89 @@ async def init_db():
 
 
 asyncio.run(init_db())
+
+
+
+# For running on RDS:
+
+# CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
+# DO $$
+# BEGIN
+#     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+#         CREATE TYPE user_role AS ENUM ('admin', 'user');
+#     END IF;
+# END
+# $$;
+
+# CREATE TABLE IF NOT EXISTS users (
+#     supabase_uid UUID PRIMARY KEY
+# );
+
+# CREATE TABLE IF NOT EXISTS textbooks (
+#     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+#     user_uid UUID REFERENCES users(supabase_uid) ON DELETE CASCADE,
+#     title TEXT NOT NULL,
+#     author TEXT NOT NULL,
+#     description TEXT NOT NULL,
+#     image_path TEXT NOT NULL,
+#     status VARCHAR(255) NOT NULL
+# );
+
+# CREATE TABLE IF NOT EXISTS chapters (
+#     textbook_id UUID NOT NULL,
+#     chapter_number INTEGER NOT NULL,
+#     chapter_title TEXT NOT NULL,
+#     PRIMARY KEY (textbook_id, chapter_number),
+#     FOREIGN KEY (textbook_id) REFERENCES textbooks(id) ON DELETE CASCADE
+# );
+
+# CREATE TABLE IF NOT EXISTS chapter_embeddings (
+#     textbook_id UUID NOT NULL,
+#     chapter_number INTEGER NOT NULL,
+#     chunk_index INTEGER NOT NULL,
+#     embedding TEXT,
+#     chunk_text TEXT NOT NULL,
+#     PRIMARY KEY (textbook_id, chapter_number, chunk_index),
+#     FOREIGN KEY (textbook_id, chapter_number)
+#         REFERENCES chapters(textbook_id, chapter_number)
+#         ON DELETE CASCADE
+# );
+
+# CREATE TABLE IF NOT EXISTS flash_card_set (
+#     fcset_id SERIAL PRIMARY KEY,
+#     set_title VARCHAR(255) NOT NULL,
+#     user_id UUID REFERENCES users(supabase_uid) ON DELETE CASCADE,
+#     UNIQUE (user_id, set_title)
+# );
+
+# CREATE TABLE IF NOT EXISTS master_flashcard (
+#     fc_id SERIAL PRIMARY KEY,
+#     question TEXT NOT NULL,
+#     answer TEXT NOT NULL,
+#     textbook_id UUID NOT NULL,
+#     chapter_number INTEGER NOT NULL,
+#     chunk_index INTEGER NOT NULL,
+#     FOREIGN KEY (textbook_id, chapter_number, chunk_index)
+#         REFERENCES chapter_embeddings(textbook_id, chapter_number, chunk_index)
+#         ON DELETE CASCADE
+# );
+
+# CREATE TABLE IF NOT EXISTS flash_card_set_assignment (
+#     fcset_id INTEGER NOT NULL REFERENCES flash_card_set(fcset_id) ON DELETE CASCADE,
+#     master_fc_id INTEGER NOT NULL REFERENCES master_flashcard(fc_id) ON DELETE CASCADE,
+#     PRIMARY KEY (fcset_id, master_fc_id)
+# );
+
+# CREATE TABLE IF NOT EXISTS seen_card (
+#     user_id UUID REFERENCES users(supabase_uid) ON DELETE CASCADE,
+#     flashcard_id INTEGER NOT NULL REFERENCES master_flashcard(fc_id) ON DELETE CASCADE,
+#     PRIMARY KEY (user_id, flashcard_id)
+# );
+
+# CREATE TABLE IF NOT EXISTS summary (
+#     summary_id SERIAL PRIMARY KEY,
+#     user_id UUID REFERENCES users(supabase_uid) ON DELETE CASCADE,
+#     title VARCHAR(255) NOT NULL,
+#     content TEXT NOT NULL
+# );
