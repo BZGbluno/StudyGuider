@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { FaMicrophone } from "react-icons/fa";
+import { supabase } from "../../services/supabaseClient";
 
 export default function Mastery() {
   const { bookId, chapterId } = useParams();
@@ -17,6 +18,45 @@ export default function Mastery() {
   const micTrackRef = useRef(null);
   const pressingRef = useRef(false);
   const transcriptEndRef = useRef(null);
+  const [metadata, setMetadata] = useState({ book: "", chapter: "" });
+
+  useEffect(() => {
+    async function fetchMetadata() {
+      try {
+        const session = await supabase.auth.getSession();
+        console.log("SESSION:", session);
+        const token = session.data.session.access_token;
+        console.log("TOKEN:", token);
+
+        if (!token) {
+          console.error("No active session found");
+          return;
+        }
+
+        const res = await fetch(
+          `http://localhost:8000/api/getMetadata/${bookId}/${chapterId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+
+        if (res.ok) {
+          const data = await res.json();
+
+          setMetadata({
+            book: data.textbookTitle,
+            chapter: data.chapterTitle,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load metadata:", err);
+      }
+    }
+    if (bookId && chapterId) {
+      fetchMetadata();
+    }
+  }, [bookId, chapterId]);
+
+  console.log("TEXTBOOK NAME: ", metadata.book);
+  console.log("CHAPTER NAME: ", metadata.chapter);
 
   useEffect(() => {
     return () => {
@@ -145,6 +185,7 @@ export default function Mastery() {
             });
 
             if (!res.ok) {
+              // This will print the exact Pydantic validation error to your browser console
               const errorDetails = await res.json();
               console.error(
                 "FastAPI 422 Error:",
@@ -169,9 +210,20 @@ export default function Mastery() {
                     content: [
                       {
                         type: "input_text",
+                        text: `Current Textbook: ${metadata.book} Current Chapter: ${metadata.chapter}`,
+                      },
+                      {
+                        type: "input_text",
+                        text: `User query: ${userText}`,
+                      },
+                      {
+                        type: "input_text",
                         text: `Relevant Context: ${chunks}`,
                       },
-                      { type: "input_text", text: `User query: ${userText}` },
+                      {
+                        type: "input_text",
+                        text: "Only use the given context if it is relevant to the current conversation. If it is not, reference previous conversion points.",
+                      },
                     ],
                   },
                 ],
@@ -240,6 +292,11 @@ export default function Mastery() {
     // Mute mic again and commit what was recorded
     if (micTrackRef.current) micTrackRef.current.enabled = false;
     dcRef.current?.send(JSON.stringify({ type: "input_audio_buffer.commit" }));
+
+    // Fallback: reset processing state after 30 seconds if no response
+    setTimeout(() => {
+      setIsProcessing(false);
+    }, 30000);
   }, []);
 
   // Keyboard shortcut: Space bar
