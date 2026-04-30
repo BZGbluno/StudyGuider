@@ -238,7 +238,7 @@ async def get_chapter_pdf_url(
             ExpiresIn=3600,  # 1 hour
         )
     except Exception as e:
-        # log e internally
+        # log e internally 
         raise HTTPException(status_code=500, detail="Failed to generate URL")
 
     return {
