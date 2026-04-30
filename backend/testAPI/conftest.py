@@ -27,7 +27,14 @@ def fake_user_id():
 @pytest.fixture
 def client():
     """TestClient with verify_jwt overridden to a fixed authenticated user."""
+    sentinel = object()
+    previous = app.dependency_overrides.get(verify_jwt, sentinel)
     app.dependency_overrides[verify_jwt] = lambda: {"sub": FAKE_USER_ID}
-    with TestClient(app) as c:
-        yield c
-    app.dependency_overrides.clear()
+    try:
+        with TestClient(app) as c:
+            yield c
+    finally:
+        if previous is sentinel:
+            app.dependency_overrides.pop(verify_jwt, None)
+        else:
+            app.dependency_overrides[verify_jwt] = previous

@@ -2,8 +2,6 @@ import fitz  # PyMuPDF
 import re
 import os
 import uuid
-from api.auth import verify_jwt
-from fastapi import Depends
 
 def is_non_chapter_title(title_lower):
     NON_CHAPTER_KEYWORDS = [
@@ -28,6 +26,10 @@ def extract_chapters_from_pdf_Updated_Better_Version(pdf_path, supabase_uid):
     doc = fitz.open(pdf_path)
     textbook_title = doc.metadata["title"]
     toc = doc.get_toc()
+
+    if not toc:
+        raise ValueError("No metadata Table of Contents found in this PDF.")
+
     mapOfChapters = []
 
     # Collect all level-1 TOC entries with their pages first
@@ -171,7 +173,9 @@ def extract_chapters_from_pdf_Updated_Better_Version(pdf_path, supabase_uid):
 
     doc.close()
 
-    return listOfChapters, textbook_title
+    listOfTitles = [title for title, _ in mapOfChapters]
+
+    return listOfChapters, textbook_title, listOfTitles
 
 
 def find_chapters_by_page(page, toc_title=""):

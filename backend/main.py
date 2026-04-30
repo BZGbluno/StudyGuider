@@ -7,11 +7,13 @@ from api.user import router as user_router
 from api.user_studymat import router as user_studymat_router
 from api.context import router as context_router
 from api.voice import router as voice_router
+from api.delete_textbook import router as delete_textbook_router
 from api.s3 import router as s3_router
 
 from logging_config import setup_logging
 from api.generateFlashCard import router as flashcard_router
 from api.generateSummary import router as summary_router
+from api.askAI import router as askai_router
 
 from apscheduler.schedulers.background import BackgroundScheduler
 import psycopg2
@@ -32,6 +34,7 @@ app.include_router(user_router)
 app.include_router(user_studymat_router)
 app.include_router(voice_router)
 app.include_router(context_router)
+app.include_router(delete_textbook_router)
 app.include_router(s3_router)
 
 # Change this to match your frontend port (3000)
@@ -50,6 +53,15 @@ app.add_middleware(
 )
 app.include_router(flashcard_router)
 app.include_router(summary_router)
+app.include_router(askai_router)
+
+# Health router for deployment testing
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "service": "backend",
+    }
 
 # Scheduler that clears stale flashcards from master_flashcard once a day.
 scheduler = BackgroundScheduler()

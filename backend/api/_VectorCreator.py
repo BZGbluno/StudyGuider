@@ -1,6 +1,5 @@
 import pandas as pd
-from transformers import AutoTokenizer, AutoModel
-import torch
+from sentence_transformers import SentenceTransformer
 from tqdm import tqdm
 
 
@@ -38,14 +37,8 @@ class VectorEmbedder:
 
     def __init__(self, model_id:str, chunked_file:pd.DataFrame):
 
-        # setting the tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        
-        # choosing optimal device if it exist
-        self.device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-
-        # moving to selected device
-        self.model = AutoModel.from_pretrained(model_id).to(self.device)
+        # setting the model
+        self.model = SentenceTransformer(model_id)
 
         # input dataframe
         self.chunkedPdfDf = chunked_file
@@ -55,21 +48,9 @@ class VectorEmbedder:
 
 
 
-    def _generate_embeddings(self, texts:str):
-
-        # Tokenize and prepare inputs, you'll need to make sure tensors are also on the correct device
-        inputs = self.tokenizer(texts, padding=True, truncation=True, return_tensors='pt').to(self.device)
-        
-        # diable gradient calculation since we are not training
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        
-        # Get the embeddings from the last hidden state
-        embeddings = outputs.last_hidden_state.mean(dim=1)
-        
-        # turn the embeddings into a list so it can be stored into df
-        embeddings = embeddings.cpu().numpy().tolist()
-        return embeddings[0]
+    def _generate_embeddings(self, texts: str):
+        embedding = self.model.encode(texts)
+        return embedding.tolist()
     
 
 

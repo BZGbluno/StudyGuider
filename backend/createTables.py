@@ -1,6 +1,4 @@
 import os
-import psycopg2
-import time
 import asyncpg
 import asyncio
 
