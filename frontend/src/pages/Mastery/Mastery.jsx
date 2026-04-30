@@ -38,9 +38,7 @@ export default function Mastery() {
 
         const res = await fetch(
           `http://localhost:8000/api/getMetadata/${bookId}/${chapterId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
         if (res.ok) {
