@@ -16,13 +16,13 @@ from api.generateSummary import router as summary_router
 from apscheduler.schedulers.background import BackgroundScheduler
 import psycopg2
 import os
+import logging
 
 # initiate logger
 setup_logging()
 
 # create app
 app = FastAPI()
-user_id = '1' 
 
 # Register endpoints
 app.include_router(generate_router)
@@ -51,11 +51,10 @@ app.add_middleware(
 app.include_router(flashcard_router)
 app.include_router(summary_router)
 
-'''Scheduler to clear seen_card table every 24 hours'''
+# Scheduler that clears stale flashcards from master_flashcard once a day.
 scheduler = BackgroundScheduler()
+logger = logging.getLogger(__name__)
 
-# Scheduler setup
-scheduler = BackgroundScheduler()
 
 def cleanup():
     try:
@@ -63,26 +62,30 @@ def cleanup():
             host=os.getenv("DATABASE_HOST"),
             database=os.getenv("DATABASE_NAME"),
             user=os.getenv("DATABASE_USER"),
-            password=os.getenv("DATABASE_PASSWORD")
+            password=os.getenv("DATABASE_PASSWORD"),
         )
-        cursor = conn.cursor()  
-        cursor.execute("DELETE FROM master_flashcard WHERE created_at < NOW() - INTERVAL '7 days';")
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM master_flashcard WHERE created_at < NOW() - INTERVAL '7 days';"
+        )
         conn.commit()
         cursor.close()
         conn.close()
-        print("Old rows deleted")
+        logger.info("master_flashcard cleanup: old rows deleted")
     except Exception as e:
-        print(f"deleting failed: {e}")
+        logger.exception(f"master_flashcard cleanup failed: {e}")
+
 
 @app.on_event("startup")
 def start_scheduler():
-    scheduler.add_job(cleanup, "interval", seconds=30)
+    scheduler.add_job(cleanup, "interval", hours=24)
     scheduler.start()
-    print("scheduler started")
+    logger.info("master_flashcard cleanup scheduler started")
+
 
 @app.on_event("shutdown")
 def shutdown_scheduler():
     scheduler.shutdown()
-    print("scheduler stopped")
+    logger.info("master_flashcard cleanup scheduler stopped")
 
 # uvicorn main:app --reload
