@@ -298,6 +298,7 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
         # creates keys from filepaths and uploads chunks to s3
         # await upload(supabase_uid, listOfChapters)
         
+        
 
         print("\n\n Uploading textbook: ", book_title, flush=True)
         # creates keys from filepaths and uploads chunks to s3
