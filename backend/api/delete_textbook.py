@@ -16,7 +16,7 @@ router = APIRouter()
 async def delete_textbook(textbook_id: UUID, user_id = Depends(verify_jwt)):
     request_id = str(uuid.uuid4())
     '''
-    This will delete given textbook id associated with given user
+    This will delete given textbook id associated with given user id
     '''
     supabase_uid = user_id.get("sub")
 
