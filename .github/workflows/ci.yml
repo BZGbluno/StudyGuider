@@ -71,6 +71,8 @@ jobs:
           DATABASE_PASSWORD=${{secrets.DATABASE_PASSWORD}}
 
           EOF
+      - name: Checking ENV
+        run: cat .env
 
       - name: Build Docker images
         run: docker compose build
