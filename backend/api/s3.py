@@ -284,8 +284,6 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
         # Debugging Embeddings
         # for p in listOfChapters:
         #     print(repr(p), "exists:", os.path.exists(p) if isinstance(p, str) else "not-a-str", flush=True)
-
-        # print("\n\n100000\n\n")
         
         # await ce.fillTables(listOfChapters, request.book_id)
         # print("\n\n200000\n\n")
