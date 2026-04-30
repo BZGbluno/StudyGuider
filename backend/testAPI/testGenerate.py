@@ -40,32 +40,6 @@ def testGetAllChapters():
 
     print(chunk_data['response'])
 
-def testFlashCard():
-    url = 'http://0.0.0.0:8000/api/generateFlashCard'
-
-    data = {
-        "Content-Type": "application/json",
-        "textbook": "thinkpython2",
-        "chapter": "Files",
-        "count": 10
-    }
-    response = requests.post(url=url, json=data)
-    chunk_data = response.json()
-
-    print(chunk_data)
-
-
-    flashcards = chunk_data["response"]
-
-    for key, value in flashcards.items():
-        question, answer_text = value
-        print(f"{key}")
-        print(f"Question: {question}")
-        print(f"Answer: {answer_text}")
-        print("\n")
-
-
-
 def testSummary():
     url = 'http://0.0.0.0:8000/api/generateSummary'
 
@@ -80,11 +54,12 @@ def testSummary():
     print(chunk_data['response'])
 
 
-# testSummary()
-testFlashCard()
-# testGenerateAPI()
-# testGetAllTextBooks()
-# testGetAllChapters()
+if __name__ == "__main__":
+    # testSummary()
+    # testGenerateAPI()
+    # testGetAllTextBooks()
+    # testGetAllChapters()
+    pass
 
 
 from concurrent.futures import ThreadPoolExecutor, as_completed

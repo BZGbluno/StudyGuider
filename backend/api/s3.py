@@ -247,6 +247,20 @@ async def get_chapter_pdf_url(
     }
 
 
+def delete_textbook(key: str):
+    s3.delete_object(Bucket=BUCKET, Key=key)
+    print(f"Deleted file: {key}")
+
+
+def delete_local_split_chapters(chapters_list: list[str]):
+    for chapter_path in chapters_list:
+        try:
+            if chapter_path and os.path.isfile(chapter_path):
+                os.remove(chapter_path)
+        except OSError as e:
+            print(f"Error removing split file {chapter_path}: {e}", flush=True)
+
+
 @router.post("/process-pdf")
 async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(verify_jwt)):
     print("\n\n1\n\n")
@@ -322,6 +336,15 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
             raise HTTPException(status_code=500, detail=str(e))
         finally:
             if conn: await conn.close()
+
+        try:
+            delete_textbook(request.file_key)
+        except Exception as e:
+            print(f"Warning: could not delete original textbook from S3 ({request.file_key}): {e}", flush=True)
+        try:
+            delete_local_split_chapters(listOfChapters)
+        except Exception as e:
+            print(f"Warning: could not delete local split chapters: {e}", flush=True)
 
         return {
             "message": "Processing completed.",
