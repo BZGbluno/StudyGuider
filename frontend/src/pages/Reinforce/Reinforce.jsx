@@ -1,10 +1,43 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { fakeApi } from "../../services/fakeApi";
-import ChapterSidebarNav from "../../components/ChapterSidebar";
-import PhaseNavbar from "../../components/PhaseNavbar";
-
+import { supabase } from "../../services/supabaseClient";
 import Flashcard from "../../components/Flashcard";
+
+const flashcardCache = new Map();
+const FLASHCARD_COUNT = 10;
+
+async function fetchFlashcards(bookId, chapterId) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const token = sessionData.session?.access_token;
+  if (!token) throw new Error("Not authenticated");
+
+  const res = await fetch("http://localhost:8000/api/generateFlashCard", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      textbook_id: bookId,
+      chapter_number: parseInt(chapterId, 10),
+      count: FLASHCARD_COUNT,
+    }),
+  });
+
+  if (!res.ok) {
+    let detail = res.statusText;
+    try {
+      const body = await res.json();
+      if (body?.detail) detail = body.detail;
+    } catch (_) {
+      // body wasn't JSON; keep statusText
+    }
+    throw new Error(detail || `HTTP ${res.status}`);
+  }
+
+  const data = await res.json();
+  return data.response ?? [];
+}
 
 export default function Reinforce({
   type = "flashcards",
@@ -17,35 +50,41 @@ export default function Reinforce({
   const [items, setItems] = useState([]);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const shuffleToken = location.state?.shuffleToken ?? null;
-
-  // const [activePhase] = useState("reinforcing");
 
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
-    setItems([]);
+    const cacheKey = `${bookId}:${chapterId}`;
     setIndex(0);
+    setError(null);
 
-    const fetchItems = async () => {
-      const data = await fakeApi.getFlashcards(bookId, chapterId);
+    async function load() {
+      let cards = flashcardCache.get(cacheKey);
+      if (!cards) {
+        setLoading(true);
+        setItems([]);
+        try {
+          cards = await fetchFlashcards(bookId, chapterId);
+          flashcardCache.set(cacheKey, cards);
+        } catch (err) {
+          if (!isMounted) return;
+          setError(err.message || "Failed to load flashcards");
+          setLoading(false);
+          return;
+        }
+      }
+
+      if (!isMounted) return;
       const prepared =
         type === "flashcards" && !showResults && shuffleToken
-          ? shuffleDeck(data)
-          : data;
-
-      if (isMounted) {
-        setItems(prepared);
-        setLoading(false);
-      }
-    };
-
-    if (type === "flashcards") {
-      fetchItems();
-    } else {
-      // for now reuse flashcards as mock quiz source
-      fetchItems();
+          ? shuffleDeck(cards)
+          : cards;
+      setItems(prepared);
+      setLoading(false);
     }
+
+    load();
     return () => {
       isMounted = false;
     };
@@ -55,21 +94,17 @@ export default function Reinforce({
   const baseRoute = `/books/${bookId}/chapters/${chapterId}/reinforce/${type}`;
   const resultsRoute = `${baseRoute}/results`;
 
-  // const handlePhaseSelect = (phase) => {
-  //   if (phase === "understanding") {
-  //     navigate(`/books/${bookId}/chapters/${chapterId}/understanding`);
-  //     return;
-  //   }
-  //   if (phase === "reinforcing") {
-  //     return;
-  //   }
-  // };
+  useEffect(() => {
+    if (done) navigate(resultsRoute, { replace: true });
+  }, [done, navigate, resultsRoute]);
 
   if (showResults) {
     return (
       <div className="mx-auto">
         {loading ? (
           <p className="text-slate-500">Loading flashcards…</p>
+        ) : error ? (
+          <p className="text-red-400">Failed to load flashcards: {error}</p>
         ) : items.length === 0 ? (
           <p className="text-slate-500">
             No flashcards are available for this chapter yet.
@@ -119,7 +154,6 @@ export default function Reinforce({
   }
 
   if (done) {
-    navigate(resultsRoute, { replace: true });
     return null;
   }
 
@@ -134,14 +168,14 @@ export default function Reinforce({
   };
 
   return (
-    // <section className="h-screen flex overflow-hidden">
-    //   <ChapterSidebarNav />
-    //   <div className="flex-1 px-8 py-6 flex flex-col gap-6 overflow-hidden min-h-0">
-    //     <PhaseNavbar activePhase={activePhase} onSelectPhase={handlePhaseSelect} />
     <div className="flex flex-col items-center gap-4">
       {loading ? (
         <div className="w-full max-w-lg border border-dashed border-slate-200 rounded-xl p-8 text-center text-slate-500">
-          Loading flashcards…
+          Generating flashcards…
+        </div>
+      ) : error ? (
+        <div className="w-full max-w-lg border border-red-400 rounded-xl p-8 text-center text-red-400">
+          Failed to load flashcards: {error}
         </div>
       ) : items.length === 0 ? (
         <div className="w-full max-w-lg border border-slate-200 rounded-xl p-8 text-center text-slate-500">
@@ -183,8 +217,6 @@ export default function Reinforce({
         </>
       )}
     </div>
-    //   </div>
-    // </section>
   );
 }
 

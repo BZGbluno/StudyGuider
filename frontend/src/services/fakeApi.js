@@ -1,5 +1,5 @@
 import {
-  mockUser, mockBooks, mockChapters, mockSummaries, mockFlashcards
+  mockUser, mockBooks, mockChapters, mockSummaries
 } from "../data/mockData";
 
 const delay = (ms = 200) => new Promise(r => setTimeout(r, ms));
@@ -11,9 +11,5 @@ export const fakeApi = {
   getSummary: async (bookId, chapterId) => {
     await delay();
     return mockSummaries.find(s => s.bookId === bookId && s.chapterId === chapterId) ?? null;
-  },
-  getFlashcards: async (bookId, chapterId) => {
-    await delay();
-    return mockFlashcards.filter(f => f.bookId === bookId && f.chapterId === chapterId);
   },
 };

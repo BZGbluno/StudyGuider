@@ -171,6 +171,28 @@ def test_caps_generation_at_chunk_count(client):
     assert gemini.await_count == 2
 
 
+def test_retries_on_unparseable_responses(client):
+    """If Gemini returns unparseable output, the loop retries with another
+    chunk until we actually fill `count`."""
+    fake_conn = FakeConn(cached=[], chunk_count=10)
+    gemini = AsyncMock(side_effect=[
+        "no answer marker here",        # parse-fail
+        "still nothing parseable",      # parse-fail
+        "Question: Q1\nAnswer: A1",
+        "Question: Q2\nAnswer: A2",
+        "Question: Q3\nAnswer: A3",
+    ])
+    p1, p2 = _patch_db_and_llm(fake_conn, gemini)
+    with p1, p2:
+        response = client.post("/api/generateFlashCard", json=_body(count=3))
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["response"]) == 3
+    # 2 failures + 3 successes = 5 total Gemini calls.
+    assert gemini.await_count == 5
+
+
 def test_unauthenticated_request_returns_401(client):
     """No JWT override here -> verify_jwt should reject the call."""
     # Drop the override that the `client` fixture installed.

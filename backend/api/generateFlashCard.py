@@ -135,18 +135,30 @@ async def generate_endpoint(request: FlashRequest, user_valid=Depends(verify_jwt
             to_generate = min(remaining, chunk_count)
             selected_chunks = set()
             error_count = 0
+            new_added = 0
+            # Keep trying until we either fill the target or hit a reasonable
+            # attempt budget (some chunks fail to parse cleanly; we don't want
+            # one bad chunk to short the user a card).
+            attempts_remaining = max(chunk_count * 2, to_generate * 3)
 
             logger.info(
                 f"[{request_id}] Generating {to_generate} new flashcards "
                 f"(chunks available: {chunk_count})"
             )
 
-            for _ in range(to_generate):
-                while True:
+            while new_added < to_generate and attempts_remaining > 0:
+                attempts_remaining -= 1
+
+                if len(selected_chunks) < chunk_count:
+                    while True:
+                        random_chunk = random.randint(1, chunk_count)
+                        if random_chunk not in selected_chunks:
+                            selected_chunks.add(random_chunk)
+                            break
+                else:
+                    # All distinct chunks have been tried; allow reuse so a
+                    # parse-fail chunk doesn't bottleneck small chapters.
                     random_chunk = random.randint(1, chunk_count)
-                    if random_chunk not in selected_chunks:
-                        selected_chunks.add(random_chunk)
-                        break
 
                 chunk = await conn.fetchrow(
                     """
@@ -210,6 +222,7 @@ async def generate_endpoint(request: FlashRequest, user_valid=Depends(verify_jwt
                     continue
 
                 flashcards.append({"id": fc_id, "front": question, "back": answer})
+                new_added += 1
 
         if not flashcards:
             logger.warning(f"[{request_id}] No valid flashcards generated")
