@@ -15,12 +15,16 @@ from api.generateFlashCard import router as flashcard_router
 from api.generateSummary import router as summary_router
 from api.askAI import router as askai_router
 
+from apscheduler.schedulers.background import BackgroundScheduler
+import psycopg2
+import os
+import logging
+
 # initiate logger
 setup_logging()
 
 # create app
 app = FastAPI()
-
 
 # Register endpoints
 app.include_router(generate_router)
@@ -59,5 +63,41 @@ def health():
         "service": "backend",
     }
 
+# Scheduler that clears stale flashcards from master_flashcard once a day.
+scheduler = BackgroundScheduler()
+logger = logging.getLogger(__name__)
+
+
+def cleanup():
+    try:
+        conn = psycopg2.connect(
+            host=os.getenv("DATABASE_HOST"),
+            database=os.getenv("DATABASE_NAME"),
+            user=os.getenv("DATABASE_USER"),
+            password=os.getenv("DATABASE_PASSWORD"),
+        )
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM master_flashcard WHERE created_at < NOW() - INTERVAL '7 days';"
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+        logger.info("master_flashcard cleanup: old rows deleted")
+    except Exception as e:
+        logger.exception(f"master_flashcard cleanup failed: {e}")
+
+
+@app.on_event("startup")
+def start_scheduler():
+    scheduler.add_job(cleanup, "interval", hours=24)
+    scheduler.start()
+    logger.info("master_flashcard cleanup scheduler started")
+
+
+@app.on_event("shutdown")
+def shutdown_scheduler():
+    scheduler.shutdown()
+    logger.info("master_flashcard cleanup scheduler stopped")
 
 # uvicorn main:app --reload
