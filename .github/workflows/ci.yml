@@ -28,7 +28,6 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
-
       # - name: Run tests
       #   run: pytest
 
@@ -44,6 +43,9 @@ jobs:
         run: |
           cat <<EOF > .env
           ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_DEFAULT_REGION=${{ secrets.AWS_DEFAULT_REGION }}
+          AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           BACKEND_URL=${{ secrets.BACKEND_URL }}
           DATABASE_HOST=${{ secrets.DATABASE_HOST }}
           DATABASE_NAME=${{ secrets.DATABASE_NAME }}
@@ -55,9 +57,14 @@ jobs:
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
           JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
+          MODEL_ID=${{ secrets.MODEL_ID }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SECRET=${{ secrets.SUPABASE_SECRET }}
+          SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=${{ secrets.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY }}
+          VITE_SUPABASE_URL=${{ secrets.VITE_SUPABASE_URL }}
           EOF
-
       - name: Build Docker images
         run: docker compose build
 
