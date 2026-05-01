@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { supabase } from '../../services/supabaseClient';
 
 export default function Auth() {
@@ -15,21 +16,21 @@ export default function Auth() {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
     } else {
       console.log("Logged in user:", data.user);
-      alert("Welcome back!");
+      toast.success("Welcome back!");
     }
   };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!email.trim() || !firstName.trim() || !lastName.trim() || !password || !confirmPassword) {
-      alert("Please fill in all fields.");
+      toast.error("Please fill in all fields.");
       return;
     }
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
     const { data, error } = await supabase.auth.signUp({
@@ -41,7 +42,7 @@ export default function Auth() {
     });
 
     if (error) {
-      alert(error.message);
+      toast.error(error.message);
       return;
     }
 

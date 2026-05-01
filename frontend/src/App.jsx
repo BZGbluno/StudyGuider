@@ -7,10 +7,8 @@ import Reinforce from "./pages/Reinforce/Reinforce";
 import PhaseLayout from "./components/PhaseLayout";
 import Mastery from "./pages/Mastery/Mastery";
 
-// --- NEW IMPORTS FOR AUTH ---
-import { useAuth } from "./context/AuthContext"; // Import the hook to access user state
-import LoginSignup from "./pages/Auth/LoginSignup"; // Import your new login page
-// ----------------------------
+import { useAuth } from "./context/AuthContext";
+import LoginSignup from "./pages/Auth/LoginSignup";
 
 export default function App() {
 

@@ -172,9 +172,11 @@ async def generate_endpoint(request: FlashRequest, user_valid=Depends(verify_jwt
                     continue
 
                 prompt = (
-                    f"Context: {chunk['chunk_text']}\n"
-                    "Create a question using the context and provide an answer to the question.\n"
-                    "Format:\nQuestion:\nAnswer:"
+                    "Create one flashcard from the context below.\n\n"
+                    f"Context:\n{chunk['chunk_text']}\n\n"
+                    "Output exactly two lines, no markdown, no preamble, no headers, no commentary:\n"
+                    "Question: <a single sentence question>\n"
+                    "Answer: <a one or two sentence answer>"
                 )
 
                 try:
@@ -188,13 +190,20 @@ async def generate_endpoint(request: FlashRequest, user_valid=Depends(verify_jwt
                         break
                     continue
 
-                if "Answer:" not in model_response:
+                text = model_response.strip()
+                if not text.startswith("Question:"):
                     continue
 
-                question, answer = model_response.split("Answer:", 1)
-                question = question.replace("Question:", "").strip().rstrip("?")
-                answer = answer.strip()
+                parts = text.split("\nAnswer:", 1)
+                if len(parts) != 2:
+                    continue
+
+                question = parts[0][len("Question:"):].strip().rstrip("?")
+                answer = parts[1].strip()
                 if not question or not answer:
+                    continue
+
+                if any(marker in question for marker in ("```", "###", "**")):
                     continue
 
                 try:

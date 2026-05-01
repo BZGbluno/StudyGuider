@@ -1,9 +1,10 @@
-import { fakeApi } from "../../services/fakeApi";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../services/supabaseClient";
 import BookCard from "../../components/BookCard";
 import UploadModal from "../../components/UploadModal";
+import ConfirmDialog from "../../components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
 
 const MAX_TEXTBOOKS = 3;
@@ -15,6 +16,7 @@ export default function Books() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadError, setUploadError] = useState(null);
   const [status, setStatus] = useState("");
+  const [bookToDelete, setBookToDelete] = useState(null);
 
   async function getJWT() {
     const { data: sessionData } = await supabase.auth.getSession();
@@ -90,7 +92,7 @@ export default function Books() {
       });
       if (!uploadRes.ok) throw new Error("S3 upload failed");
 
-      console.log("Upload good!");
+      console.log("Initial upload successful");
       // 4) Notify backend to start processing
       const processResponse = await fetch("http://localhost:8000/process-pdf", {
         method: "POST",
@@ -109,12 +111,6 @@ export default function Books() {
       console.log(processData.message);
 
       // 5) Poll until complete
-      // const testval = await fetch(`/api/textbooks/${book_id}/status`, {
-      //   headers: { Authorization: `Bearer ${currentToken}` },
-      // });
-      // const text = await testval.text();
-      // console.log(text.slice(0, 200));
-      // console.log(testval.headers.get("content-type"));
       await pollStatus(book_id, currentToken);
 
       // Refresh user textbook list (after upload)
@@ -132,8 +128,14 @@ export default function Books() {
     }
   }
 
-  async function handleDelete(book) {
-    if (!confirm(`Delete "${book.title}"? This cannot be undone.`)) return;
+  function handleDelete(book) {
+    setBookToDelete(book);
+  }
+
+  async function confirmDelete() {
+    const book = bookToDelete;
+    setBookToDelete(null);
+    if (!book) return;
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const currentToken = sessionData.session?.access_token;
@@ -152,9 +154,10 @@ export default function Books() {
       }
 
       setBooks((prev) => prev.filter((b) => b.id !== book.id));
+      toast.success(`Deleted "${book.title}"`);
     } catch (err) {
       console.error("Delete error:", err);
-      alert(err.message);
+      toast.error(err.message);
     }
   }
 
@@ -243,6 +246,20 @@ export default function Books() {
             error={uploadError}
           />
         )}
+
+        <ConfirmDialog
+          open={!!bookToDelete}
+          title="Delete textbook?"
+          description={
+            bookToDelete
+              ? `"${bookToDelete.title}" will be permanently removed. This cannot be undone.`
+              : ""
+          }
+          confirmLabel="Delete"
+          destructive
+          onConfirm={confirmDelete}
+          onCancel={() => setBookToDelete(null)}
+        />
       </section>
     </main>
   );

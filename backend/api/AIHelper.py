@@ -27,8 +27,9 @@ async def get_gemini_response(prompt: str) -> str:
         client = genai.Client()
         logger.info(f"[{request_id}] Calling Gemini API...")
         response = client.models.generate_content(
-            model="gemini-3.1-flash-lite-preview",
+            model="gemini-2.5-flash-lite",
             contents=prompt,
+            config={"thinking_config": {"thinking_budget": 0}},
         )
 
         if not response.text:

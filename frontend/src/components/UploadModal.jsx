@@ -1,5 +1,6 @@
 import React, { useState, useRef } from "react";
 import { X, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 export default function UploadModal({ onClose, onUpload, error }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -12,7 +13,7 @@ export default function UploadModal({ onClose, onUpload, error }) {
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
     } else if (file) {
-      alert("Please select a valid PDF file.");
+      toast.error("Please select a valid PDF file.");
     }
   }
 
@@ -23,7 +24,7 @@ export default function UploadModal({ onClose, onUpload, error }) {
     if (file && file.type === "application/pdf") {
       setSelectedFile(file);
     } else if (file) {
-      alert("Please select a valid PDF file.");
+      toast.error("Please select a valid PDF file.");
     }
   }
 
@@ -110,7 +111,7 @@ export default function UploadModal({ onClose, onUpload, error }) {
             </button>
             {isProcessing && (
               <p className="mt-4 text-sm text-gray-400">
-                Processing your textbook. This may take a minute — please don't close this window.
+                Processing your textbook. This may take a few minutes — please don't close this window.
               </p>
             )}
           </div>
