@@ -33,8 +33,6 @@ s3 = boto3.client(
     region_name=os.getenv("AWS_DEFAULT_REGION")
 )
 
-# s3 = boto3.client("s3")
-
 class ProcessRequest(BaseModel):
     book_id: UUID
     file_key: str
@@ -55,7 +53,7 @@ def upload_file(local_path: str, *, key_prefix: str = "textbooks/uploads") -> st
     print(f"Uploaded to: {key}")
     return key
 
-# Uploads chunked chapter PDFs (one batch id per request avoids S3 overwrites on same filenames).
+# Uploads chunked chapter PDFs (one batch id per request avoids S3 overwrites on same filenames)
 async def upload(supabase_uid, path_arr, textbook_id, title_arr):
     uploaded = []
     failed = []
@@ -75,7 +73,6 @@ async def upload(supabase_uid, path_arr, textbook_id, title_arr):
         for path in path_arr:
             try:
                 s3_key = f"users/{supabase_uid}/textbooks/{textbook_id}/chapters/{chapter_count}"
-                # print(f"Uploading {local_file_path} -> {s3_key}")
 
                 # Upload to S3 FIRST
                 s3.upload_file(
@@ -127,7 +124,7 @@ def download_file(key: str, download_path: str):
     )
     print(f"Downloaded to: {download_path}")
 
-# Provides frontend with a presigned url for textbook.
+# Provides frontend with a presigned url for textbook
 @router.post("/api/getPresignedUrl")
 async def get_url(user_valid=Depends(verify_jwt)):
     
@@ -178,7 +175,7 @@ async def get_url(user_valid=Depends(verify_jwt)):
     )
     return {"presigned_url": url, "book_id": textbook_id, "file_key": key}
 
-# Provides frontend with a presigned url for textbook chapter.
+# Provides frontend with a presigned url for textbook chapter
 @router.get("/api/textbooks/{textbook_id}/chapters/{chapter_id}/pdf")
 async def get_chapter_pdf_url(
     textbook_id: UUID,
@@ -225,7 +222,7 @@ async def get_chapter_pdf_url(
         if conn:
             await conn.close()
 
-    # ✅ Construct S3 key (now safe)
+    # Construct S3 key
     key = f"users/{supabase_uid}/textbooks/{textbook_id}/chapters/{chapter_id}"
 
     try:
@@ -271,7 +268,7 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
     try:
         print(f"[{request.book_id}] Processing started...")
 
-        # downloads file from s3 (uploaded to via frontend)
+        # Downloads file from S3 (uploaded to via frontend)
         download_file(request.file_key, "downloaded_textbook.pdf")
         
         # Generates list of local downloaded chapter paths
@@ -279,29 +276,9 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
         
         if not listOfChapters:
             raise ValueError("No chapters could be extracted from the PDF. Ensure the PDF has a valid Table of Contents and chapter structure.")
-        
-        # TODO: Call creating embeddings function here
-        # Debugging Embeddings
-        # for p in listOfChapters:
-        #     print(repr(p), "exists:", os.path.exists(p) if isinstance(p, str) else "not-a-str", flush=True)
-        
-        # await ce.fillTables(listOfChapters, request.book_id)
-        """
-        1. Run the app with s3 upload once to get the seperate files
-        2. Write your helper function that will create embeddings
-        2.5 Add those embeddings to the database
-        3. Test that you are doing this correctly
-        4. Then you can integrate it into the main code.
-        5. Merge your code with Pierce's code
-        
-        """
-        # creates keys from filepaths and uploads chunks to s3
-        # await upload(supabase_uid, listOfChapters)
-        
-        
 
         print("\n\n Uploading textbook: ", book_title, flush=True)
-        # creates keys from filepaths and uploads chunks to s3
+        # Creates keys from filepaths and uploads chunks to S3
         await upload(supabase_uid, listOfChapters, request.book_id, listOfTitles)
         
         await ce.fillTables(listOfChapters, request.book_id)
@@ -309,7 +286,7 @@ async def trigger_pdf_processing(request: ProcessRequest, user_valid=Depends(ver
 
 
         print(f"[{request.book_id}] Processing complete.\n\n")
-        # Update db
+        # Update DB
         conn = None
         try:
             
@@ -398,5 +375,5 @@ def delete_textbook_s3(supabase_uid: str, textbook_id: UUID):
 
         keys = [{"Key": obj["Key"]} for obj in objects]
 
-        #delete whole batch 
+        # Delete whole batch 
         s3.delete_objects(Bucket=BUCKET, Delete = {"Objects": keys, "Quiet": True})

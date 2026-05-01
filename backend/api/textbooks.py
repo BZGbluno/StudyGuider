@@ -33,9 +33,6 @@ async def getTextbooks_endpoint(user_id = Depends(verify_jwt)):
             supabase_uid,
         )
 
-        # if not rows:
-        #     raise HTTPException(status_code=404, detail="Titles from textbooks not found")
-
         return [
             {
                 "id": row["id"],
@@ -53,13 +50,15 @@ async def getTextbooks_endpoint(user_id = Depends(verify_jwt)):
         if conn is not None:
             await conn.close()
 '''
-Fetches all textbooks from the database and returns a list of dictionaries 
-containing title, author, description, and image_path.
-    
-Connects asynchronously to PostgreSQL using environment variables, fetches all rows 
-from the 'textbooks' table, and converts them into a JSON-friendly format.
-    
-Raises HTTPException(404) if no textbooks are found, or HTTPException(500) 
+getTextbooks_endpoint:
+Fetches the authenticated user's completed textbooks and returns a list of
+dictionaries containing id, title, and status.
+
+Connects asynchronously to PostgreSQL using environment variables, filters
+the 'textbooks' table by user_uid and status = 'complete', and returns the
+rows in a JSON-friendly format (empty list if none).
+
+Raises HTTPException(401) if the JWT is missing a UID, or HTTPException(500)
 for any database errors.
 '''
     

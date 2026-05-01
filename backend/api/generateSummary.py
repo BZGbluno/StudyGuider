@@ -52,20 +52,6 @@ async def generate_endpoint(request: SummaryRequest, user_valid=Depends(verify_j
 
         logger.info(f"[{request_id}] Fetching chapter metadata")
 
-        # res = await conn.fetchrow("""
-        #     SELECT c.textbook_id, c.chapter_number
-        #     FROM chapters c
-        #     JOIN textbooks t ON c.textbook_id = t.id
-        #     WHERE t.title = $1 AND c.chapter_title = $2;
-        # """, textbook, chapter)
-
-        # if res is None:
-        #     logger.warning(f"[{request_id}] Invalid textbook/chapter")
-        #     raise HTTPException(status_code=400, detail="Invalid textbook or chapter title")
-
-        # textbook_id = res["textbook_id"]
-        # chapter_number = res["chapter_number"]
-        
         textbook_id = request.textbook_id
         chapter_number = request.chapter_number
 

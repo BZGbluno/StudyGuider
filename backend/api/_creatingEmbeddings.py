@@ -22,19 +22,8 @@ def createEmbeddings(pdf_paths: list[str]):
     vectorEmbedder = VectorEmbedder(model_id, dataFrame)
     vectorEmbedder.createEmbeddings()
 
-    # Debugging - Checks if the embeddings were created
     newFrame = vectorEmbedder.getEmbeddingsDf()
 
-    # Resolve path relative to this file's location:
-    # _creatingEmbeddings.py lives in backend/api/, so go up one level into backend/bookAdders/csv/
-    # this_file_dir = os.path.dirname(os.path.abspath(__file__))
-    # csv_dir = os.path.abspath(os.path.join(this_file_dir, "..", "bookAdders", "csv"))
-    # os.makedirs(csv_dir, exist_ok=True)
-
-    # output_path = os.path.join(csv_dir, "testingEmbeddings.csv")
-    # print(f"Saving CSV to: {output_path}", flush=True)
-    # newFrame.to_csv(output_path, index=False)
-    
     return newFrame
 
 
@@ -61,7 +50,6 @@ async def fillTables(pdf_paths: list[str], textbook_id: UUID):
                 user=os.getenv("DATABASE_USER"),
                 password=os.getenv("DATABASE_PASSWORD")
             )
-            # df = createEmbeddings(pdf_paths)
 
             for chapter_id, group in df.groupby('chapter'):
                 for chunk_index, (_, row) in enumerate(group.iterrows(), start=1):

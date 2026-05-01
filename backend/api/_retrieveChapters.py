@@ -283,12 +283,3 @@ def body_font_size(page):
             max_size = size
 
     return max_size
-
-# branch name: frontend-dev
-
-"""
-Switch to the fronend branch
-Merge this research branch into fronend
-Then move your code into the new endpoint that is used for S3
-Then test the new endpoint
-"""
