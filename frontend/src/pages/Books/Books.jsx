@@ -140,13 +140,16 @@ export default function Books() {
       if (!currentToken) throw new Error("Not authenticated");
 
       const res = await fetch(
-        `http://localhost:8000/api/textbooks/${book.id}`,
+        `http://localhost:8000/api/delete_textbook?textbook_id=${encodeURIComponent(book.id)}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${currentToken}` },
         },
       );
-      if (!res.ok) throw new Error("Failed to delete textbook");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.detail || "Failed to delete textbook");
+      }
 
       setBooks((prev) => prev.filter((b) => b.id !== book.id));
     } catch (err) {
