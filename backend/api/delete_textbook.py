@@ -6,6 +6,7 @@ import logging
 from uuid import UUID
 import uuid
 from api.auth import verify_jwt
+from api.s3 import delete_textbook_s3
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -15,7 +16,7 @@ router = APIRouter()
 async def delete_textbook(textbook_id: UUID, user_id = Depends(verify_jwt)):
     request_id = str(uuid.uuid4())
     '''
-    This will delete given textbook id associated with given user
+    This will delete given textbook id associated with given user id
     '''
     supabase_uid = user_id.get("sub")
 
@@ -42,8 +43,6 @@ async def delete_textbook(textbook_id: UUID, user_id = Depends(verify_jwt)):
 
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail="Textbook not found")
-        
-        return Response(status_code=204)
 
     except HTTPException:
         raise
@@ -55,3 +54,12 @@ async def delete_textbook(textbook_id: UUID, user_id = Depends(verify_jwt)):
     finally:
         if conn:
             await conn.close()
+
+    #now delete from s3
+    try:
+        delete_textbook_s3(supabase_uid, textbook_id)
+        logger.info(f"[{request_id}] Deleting from S3...")
+    except Exception as e:
+        logger.error(f"[{request_id}] S3 delete operation failed: {e}", exc_info=True)
+    
+    return Response(status_code=204)

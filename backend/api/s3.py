@@ -385,3 +385,18 @@ async def get_job_status(textbook_id: UUID):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         if conn: await conn.close()
+
+def delete_textbook_s3(supabase_uid: str, textbook_id: UUID):
+    prefix = f"users/{supabase_uid}/textbooks/{str(textbook_id)}/"
+
+    paginator = s3.get_paginator("list_objects_v2")
+    
+    for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
+        objects = page.get("Contents", [])
+        if not objects:
+            continue
+
+        keys = [{"Key": obj["Key"]} for obj in objects]
+
+        #delete whole batch 
+        s3.delete_objects(Bucket=BUCKET, Delete = {"Objects": keys, "Quiet": True})
