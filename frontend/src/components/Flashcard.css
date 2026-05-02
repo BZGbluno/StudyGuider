@@ -58,11 +58,10 @@
   font-size: 1.05rem;
   line-height: 1.55rem;
   font-weight: 500;
-  flex: 1;
   min-height: 0;
   overflow-y: auto;
   overflow-wrap: anywhere;
-  margin: 0.5rem 0;
+  margin: auto 0;
 }
 
 .flashcard-hint {
