@@ -6,6 +6,7 @@ import { supabase } from "../../services/supabaseClient";
 import PdfViewer from "./PdfViewer";
 import Summary from "./Summary";
 import AskAI from "./AskAI";
+import { apiUrl } from "../../config/api";
 
 const summaryCache = new Map();
 
@@ -42,7 +43,7 @@ export default function Understanding({ defaultMode = "summary" }) {
       const token = session.data.session.access_token;
 
       const res = await fetch(
-        `http://localhost:8000/api/textbooks/${bookId}/chapters/${chapterId}/pdf`,
+        apiUrl(`/api/textbooks/${bookId}/chapters/${chapterId}/pdf`),
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!alive) return;
@@ -72,7 +73,7 @@ export default function Understanding({ defaultMode = "summary" }) {
         if (!token) throw new Error("Not authenticated");
 
         const res = await fetch(
-          `http://localhost:8000/api/getTextbookTitle?textbook_id=${bookId}`,
+          apiUrl(`/api/getTextbookTitle?textbook_id=${bookId}`),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -108,7 +109,7 @@ export default function Understanding({ defaultMode = "summary" }) {
       const token = sessionData.session?.access_token;
       if (!token) throw new Error("Not authenticated");
 
-      const res = await fetch("http://localhost:8000/api/generateSummary", {
+      const res = await fetch(apiUrl("/api/generateSummary"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

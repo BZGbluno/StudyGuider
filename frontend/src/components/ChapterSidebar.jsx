@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { NavLink, useParams, useLocation } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
+import { apiUrl } from "../config/api";
 
 function getPhaseSuffixFromPath(pathname) {
   if (pathname.includes("/mastery")) return "mastery";
@@ -23,7 +24,7 @@ export default function ChapterSidebar({ className = "", activePhase }) {
       const token = session.data.session.access_token;
 
       const res = await fetch(
-        `http://localhost:8000/api/getChapters?textbook_id=${bookId}`,
+        apiUrl(`/api/getChapters?textbook_id=${bookId}`),
         { headers: { Authorization: `Bearer ${token}` } },
       );
       const data = await res.json();

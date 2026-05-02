@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../services/supabaseClient";
 import { X } from "lucide-react";
+import { apiUrl } from "../config/api";
 
 export default function BookModal({ book, onClose }) {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function BookModal({ book, onClose }) {
     const token = session.data.session.access_token;
 
     const res = await fetch(
-      `http://localhost:8000/api/getChapters?textbook_id=${book.id}`,
+      apiUrl(`/api/getChapters?textbook_id=${book.id}`),
       { headers: { Authorization: `Bearer ${token}` } },
     );
     const data = await res.json();

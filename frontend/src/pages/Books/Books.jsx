@@ -6,6 +6,7 @@ import BookCard from "../../components/BookCard";
 import UploadModal from "../../components/UploadModal";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { useNavigate } from "react-router-dom";
+import { apiUrl } from "../../config/api";
 
 const MAX_TEXTBOOKS = 3;
 
@@ -33,7 +34,7 @@ export default function Books() {
     const token = session.data.session.access_token;
 
     const res = await fetch(
-      `http://localhost:8000/api/getChapters?textbook_id=${book.id}`,
+      apiUrl(`/api/getChapters?textbook_id=${book.id}`),
       { headers: { Authorization: `Bearer ${token}` } },
     );
     const data = await res.json();
@@ -47,7 +48,7 @@ export default function Books() {
     const token = session.data.session.access_token;
     console.log(token);
 
-    const res = await fetch("http://localhost:8000/api/getTextbooks", {
+    const res = await fetch(apiUrl("/api/getTextbooks"), {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
@@ -73,7 +74,7 @@ export default function Books() {
       if (!currentToken) throw new Error("Not authenticated");
 
       // 2) Get presigned URL
-      const res = await fetch("http://localhost:8000/api/getPresignedUrl", {
+      const res = await fetch(apiUrl("/api/getPresignedUrl"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,7 +95,7 @@ export default function Books() {
 
       console.log("Initial upload successful");
       // 4) Notify backend to start processing
-      const processResponse = await fetch("http://localhost:8000/process-pdf", {
+      const processResponse = await fetch(apiUrl("/process-pdf"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -142,7 +143,9 @@ export default function Books() {
       if (!currentToken) throw new Error("Not authenticated");
 
       const res = await fetch(
-        `http://localhost:8000/api/delete_textbook?textbook_id=${encodeURIComponent(book.id)}`,
+        apiUrl(
+          `/api/delete_textbook?textbook_id=${encodeURIComponent(book.id)}`,
+        ),
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${currentToken}` },
@@ -165,7 +168,7 @@ export default function Books() {
     const MAX_ATTEMPTS = 60; // 3 min at 3s intervals
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
       const res = await fetch(
-        `http://localhost:8000/api/textbooks/${textbookId}/status`,
+        apiUrl(`/api/textbooks/${textbookId}/status`),
         {
           headers: { Authorization: `Bearer ${currentToken}` },
         },

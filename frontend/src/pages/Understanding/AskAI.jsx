@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { supabase } from "../../services/supabaseClient";
 import MarkdownContent from "../../components/MarkdownContent";
+import { apiUrl } from "../../config/api";
 
 // Module-scoped state so in-flight requests survive unmounts (tab/chapter/phase switches).
 const chatCache = new Map();   // cacheKey -> messages[]
@@ -32,7 +33,7 @@ async function sendChatMessage({ cacheKey, bookId, chapterId, userText }) {
     const token = sessionData.session?.access_token;
     if (!token) throw new Error("Not authenticated");
 
-    const res = await fetch("http://localhost:8000/api/askAI", {
+    const res = await fetch(apiUrl("/api/askAI"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

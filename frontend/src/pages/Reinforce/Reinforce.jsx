@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import Flashcard from "../../components/Flashcard";
+import { apiUrl } from "../../config/api";
 
 const flashcardCache = new Map();
 const FLASHCARD_COUNT = 10;
@@ -11,7 +12,7 @@ async function fetchFlashcards(bookId, chapterId) {
   const token = sessionData.session?.access_token;
   if (!token) throw new Error("Not authenticated");
 
-  const res = await fetch("http://localhost:8000/api/generateFlashCard", {
+  const res = await fetch(apiUrl("/api/generateFlashCard"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

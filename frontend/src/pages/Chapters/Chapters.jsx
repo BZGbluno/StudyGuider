@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import { useEffect, useState } from "react";
+import { apiUrl } from "../../config/api";
 
 export default function Chapters() {
   const { bookId } = useParams();
@@ -12,7 +13,7 @@ export default function Chapters() {
       const token = session.data.session.access_token;
 
       const res = await fetch(
-        `http://localhost:8000/api/getChapters?textbook_id=${bookId}`,
+        apiUrl(`/api/getChapters?textbook_id=${bookId}`),
         { headers: { Authorization: `Bearer ${token}` } },
       );
       const data = await res.json();

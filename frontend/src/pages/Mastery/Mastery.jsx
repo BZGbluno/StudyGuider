@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { FaMicrophone } from "react-icons/fa";
 import { supabase } from "../../services/supabaseClient";
+import { apiUrl } from "../../config/api";
 
 export default function Mastery() {
   const { bookId, chapterId } = useParams();
@@ -34,7 +35,7 @@ export default function Mastery() {
         }
 
         const res = await fetch(
-          `http://localhost:8000/api/getMetadata/${bookId}/${chapterId}`,
+          apiUrl(`/api/getMetadata/${bookId}/${chapterId}`),
           { headers: { Authorization: `Bearer ${token}` } },
         );
 
@@ -110,7 +111,7 @@ export default function Mastery() {
   }, [transcripts]);
 
   const getToken = async () => {
-    const res = await fetch("http://localhost:8000/api/session");
+    const res = await fetch(apiUrl("/api/session"));
     const data = await res.json();
     return data.client_secret.value;
   };
@@ -174,7 +175,7 @@ export default function Mastery() {
 
           let chunks = [];
           try {
-            const res = await fetch("http://localhost:8000/api/context", {
+            const res = await fetch(apiUrl("/api/context"), {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

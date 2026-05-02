@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '../../services/supabaseClient';
+import { apiUrl } from '../../config/api';
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -58,7 +59,7 @@ export default function Auth() {
     }
 
     // 2. Make the POST request
-    const response = await fetch("http://localhost:8000/api/createUser", {
+    const response = await fetch(apiUrl("/api/createUser"), {
       method: "POST", // Must match @router.post
       headers: {
         "Content-Type": "application/json",
